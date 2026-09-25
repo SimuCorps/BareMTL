@@ -16,7 +16,7 @@ import { ILogger } from './logging';
 import { IMdParser, MarkdownItEngine } from './markdownEngine';
 import { MarkdownContributionProvider } from './markdownExtensions';
 import { MarkdownEditorProvider } from './preview/markdownEditorProvider';
-import { createSharedLinkPresentationService, registerLinkPresentationProvider } from './preview/linkPresentation/linkPresentationService';
+import { createSharedLinkPresentationService } from './preview/linkPresentation/linkPresentationService';
 import { MdDocumentRenderer } from './preview/documentRenderer';
 import { MarkdownPreviewManager } from './preview/previewManager';
 import { ExtensionContentSecurityPolicyArbiter } from './preview/security';
@@ -50,7 +50,6 @@ export function activateShared(
 	const linkPresentationService = createSharedLinkPresentationService(logger);
 	context.subscriptions.push(
 		linkPresentationService,
-		registerLinkPresentationProvider(linkPresentationService),
 		vscode.window.onDidChangeWindowState(event => {
 			if (event.focused) {
 				linkPresentationService.refresh();

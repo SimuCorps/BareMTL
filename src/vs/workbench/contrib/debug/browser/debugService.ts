@@ -43,7 +43,6 @@ import { ILifecycleService } from '../../../services/lifecycle/common/lifecycle.
 import { IPaneCompositePartService } from '../../../services/panecomposite/browser/panecomposite.js';
 import { IViewsService } from '../../../services/views/common/viewsService.js';
 import { VIEWLET_ID as EXPLORER_VIEWLET_ID } from '../../files/common/files.js';
-import { ITestService } from '../../testing/common/testService.js';
 import { CALLSTACK_VIEW_ID, CONTEXT_BREAKPOINTS_EXIST, CONTEXT_DEBUG_STATE, CONTEXT_DEBUG_TYPE, CONTEXT_DEBUG_UX, CONTEXT_DISASSEMBLY_VIEW_FOCUS, CONTEXT_HAS_DEBUGGED, CONTEXT_IN_DEBUG_MODE, DEBUG_MEMORY_SCHEME, DEBUG_SCHEME, IAdapterManager, IBreakpoint, IBreakpointData, IBreakpointUpdateData, ICompound, IConfig, IConfigurationManager, IDebugConfiguration, IDebugModel, IDebugService, IDebugSession, IDebugSessionOptions, IEnablement, IExceptionBreakpoint, IGlobalConfig, IGuessedDebugger, ILaunch, IStackFrame, IThread, IViewModel, REPL_VIEW_ID, State, VIEWLET_ID, debuggerDisabledMessage, getStateLabel } from '../common/debug.js';
 import { DebugCompoundRoot } from '../common/debugCompoundRoot.js';
 import { Breakpoint, DataBreakpoint, DebugModel, FunctionBreakpoint, IDataBreakpointOptions, IFunctionBreakpointOptions, IInstructionBreakpointOptions, InstructionBreakpoint } from '../common/debugModel.js';
@@ -113,7 +112,6 @@ export class DebugService implements IDebugService {
 		@IQuickInputService private readonly quickInputService: IQuickInputService,
 		@IWorkspaceTrustRequestService private readonly workspaceTrustRequestService: IWorkspaceTrustRequestService,
 		@IUriIdentityService private readonly uriIdentityService: IUriIdentityService,
-		@ITestService private readonly testService: ITestService,
 	) {
 		this.breakpointsToSendOnResourceSaved = new Set<URI>();
 
@@ -570,16 +568,7 @@ export class DebugService implements IDebugService {
 							nls.localize('debugTypeMissing', "Missing property 'type' for the chosen launch configuration.");
 					}
 
-					const actionList: IAction[] = [];
-
-					actionList.push(toAction({
-						id: 'installAdditionalDebuggers',
-						label: nls.localize({ key: 'installAdditionalDebuggers', comment: ['Placeholder is the debug type, so for example "node", "python"'] }, "Install {0} Extension", resolvedConfig.type),
-						enabled: true,
-						run: async () => this.commandService.executeCommand('debug.installAdditionalDebuggers', resolvedConfig?.type)
-					}));
-
-					await this.showError(message, actionList); return false;
+					await this.showError(message, []); return false;
 				}
 
 				if (!dbg.enabled) {
@@ -896,21 +885,6 @@ export class DebugService implements IDebugService {
 
 		for (const breakpoint of this.model.getBreakpoints({ triggeredOnly: true })) {
 			breakpoint.setSessionDidTrigger(session.getId(), false);
-		}
-
-		// For debug sessions spawned by test runs, cancel the test run and stop
-		// the session, then start the test run again; tests have no notion of restarts.
-		if (session.correlatedTestRun) {
-			if (!session.correlatedTestRun.completedAt) {
-				session.cancelCorrelatedTestRun();
-				await Event.toPromise(session.correlatedTestRun.onComplete);
-				// todo@connor4312 is there any reason to wait for the debug session to
-				// terminate? I don't think so, test extension should already handle any
-				// state conflicts...
-			}
-
-			this.testService.runResolvedTests(session.correlatedTestRun.request);
-			return;
 		}
 
 		if (session.capabilities.supportsRestartRequest) {

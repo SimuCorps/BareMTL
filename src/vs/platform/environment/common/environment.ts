@@ -60,14 +60,6 @@ export interface IEnvironmentService {
 	cacheHome: URI;
 	appSharedDataHome: URI;
 
-	// --- settings sync
-	userDataSyncHome: URI;
-	sync: 'on' | 'off' | undefined;
-
-	// --- continue edit session
-	continueOn?: string;
-	editSessionId?: string;
-
 	// --- extension development
 	debugExtensionHost: IExtensionHostDebugParams;
 	isExtensionDevelopment: boolean;
@@ -90,8 +82,6 @@ export interface IEnvironmentService {
 	disableExperiments: boolean;
 	serviceMachineIdResource: URI;
 
-	// --- agent sessions workspace
-	agentSessionsWorkspace: URI;
 	// --- Policy
 	policyFile?: URI;
 

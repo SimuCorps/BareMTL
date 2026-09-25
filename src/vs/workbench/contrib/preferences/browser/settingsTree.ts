@@ -55,15 +55,12 @@ import { defaultButtonStyles, getInputBoxStyle, getListStyles, getSelectBoxStyle
 import { editorBackground, foreground } from '../../../../platform/theme/common/colorRegistry.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { IUserDataProfilesService } from '../../../../platform/userDataProfile/common/userDataProfile.js';
-import { getIgnoredSettings } from '../../../../platform/userDataSync/common/settingsMerge.js';
-import { IUserDataSyncEnablementService, getDefaultIgnoredSettings } from '../../../../platform/userDataSync/common/userDataSync.js';
 import { hasNativeContextMenu } from '../../../../platform/window/common/window.js';
 import { APPLICATION_SCOPES, APPLY_ALL_PROFILES_SETTING, IWorkbenchConfigurationService } from '../../../services/configuration/common/configuration.js';
 import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
 import { IExtensionService } from '../../../services/extensions/common/extensions.js';
 import { ISetting, ISettingsGroup, SETTINGS_AUTHORITY, SettingValueType } from '../../../services/preferences/common/preferences.js';
 import { getInvalidTypeError } from '../../../services/preferences/common/preferencesValidation.js';
-import { IExtensionsWorkbenchService } from '../../extensions/common/extensions.js';
 import { LANGUAGE_SETTING_TAG, SETTINGS_EDITOR_COMMAND_SHOW_CONTEXT_MENU, compareTwoNullableNumbers } from '../common/preferences.js';
 import { settingsNumberInputBackground, settingsNumberInputBorder, settingsNumberInputForeground, settingsSelectBackground, settingsSelectBorder, settingsSelectForeground, settingsSelectListBorder, settingsTextInputBackground, settingsTextInputBorder, settingsTextInputForeground } from '../common/settingsEditorColorRegistry.js';
 import { settingsMoreActionIcon } from './preferencesIcons.js';
@@ -176,7 +173,7 @@ function getObjectDisplayValue(element: SettingsTreeSettingElement): IObjectData
 
 	const data = element.isConfigured ?
 		{ ...elementDefaultValue, ...elementScopeValue } :
-		element.hasPolicyValue || element.isAgentsWindowReadOnly ? element.scopeValue :
+		element.hasPolicyValue ? element.scopeValue :
 			elementDefaultValue;
 
 	const { objectProperties, objectPatternProperties, objectAdditionalProperties } = element.setting;
@@ -737,11 +734,6 @@ interface ISettingBoolItemTemplate extends ISettingItemTemplate<boolean> {
 	checkbox: Toggle;
 }
 
-interface ISettingExtensionToggleItemTemplate extends ISettingItemTemplate<undefined> {
-	actionButton: Button;
-	dismissButton: Button;
-}
-
 interface ISettingTextItemTemplate extends ISettingItemTemplate<string> {
 	inputBox: InputBox;
 	validationErrorMessageElement: HTMLElement;
@@ -803,7 +795,6 @@ const SETTINGS_COMPLEX_TEMPLATE_ID = 'settings.complex.template';
 const SETTINGS_COMPLEX_OBJECT_TEMPLATE_ID = 'settings.complexObject.template';
 const SETTINGS_NEW_EXTENSIONS_TEMPLATE_ID = 'settings.newExtensions.template';
 const SETTINGS_ELEMENT_TEMPLATE_ID = 'settings.group.template';
-const SETTINGS_EXTENSION_TOGGLE_TEMPLATE_ID = 'settings.extensionToggle.template';
 
 export interface ISettingChangeEvent {
 	key: string;
@@ -882,10 +873,6 @@ export abstract class AbstractSettingRenderer extends Disposable implements ITre
 	protected readonly _onDidFocusSetting = this._register(new Emitter<SettingsTreeSettingElement>());
 	readonly onDidFocusSetting: Event<SettingsTreeSettingElement> = this._onDidFocusSetting.event;
 
-	private ignoredSettings: string[];
-	private readonly _onDidChangeIgnoredSettings = this._register(new Emitter<void>());
-	readonly onDidChangeIgnoredSettings: Event<void> = this._onDidChangeIgnoredSettings.event;
-
 	protected readonly _onDidChangeSettingHeight = this._register(new Emitter<HeightChangeParams>());
 	readonly onDidChangeSettingHeight: Event<HeightChangeParams> = this._onDidChangeSettingHeight.event;
 
@@ -904,19 +891,12 @@ export abstract class AbstractSettingRenderer extends Disposable implements ITre
 		@IKeybindingService protected readonly _keybindingService: IKeybindingService,
 		@IConfigurationService protected readonly _configService: IConfigurationService,
 		@IExtensionService protected readonly _extensionsService: IExtensionService,
-		@IExtensionsWorkbenchService protected readonly _extensionsWorkbenchService: IExtensionsWorkbenchService,
 		@IProductService protected readonly _productService: IProductService,
 		@ITelemetryService protected readonly _telemetryService: ITelemetryService,
 		@IHoverService protected readonly _hoverService: IHoverService,
 		@IMarkdownRendererService private readonly _markdownRendererService: IMarkdownRendererService,
 	) {
 		super();
-
-		this.ignoredSettings = getIgnoredSettings(getDefaultIgnoredSettings(), this._configService);
-		this._register(this._configService.onDidChangeConfiguration(e => {
-			this.ignoredSettings = getIgnoredSettings(getDefaultIgnoredSettings(), this._configService);
-			this._onDidChangeIgnoredSettings.fire();
-		}));
 	}
 
 	abstract renderTemplate(container: HTMLElement): any;
@@ -1074,13 +1054,9 @@ export abstract class AbstractSettingRenderer extends Disposable implements ITre
 		this.renderValue(element, <ISettingItemTemplate>template, onChange);
 
 		template.indicatorsLabel.updateWorkspaceTrust(element);
-		template.indicatorsLabel.updateSyncIgnored(element, this.ignoredSettings);
 		template.indicatorsLabel.updateDefaultOverrideIndicator(element);
 		template.indicatorsLabel.updatePreviewIndicator(element);
 		template.indicatorsLabel.updateAdvancedIndicator(element);
-		template.elementDisposables.add(this.onDidChangeIgnoredSettings(() => {
-			template.indicatorsLabel.updateSyncIgnored(element, this.ignoredSettings);
-		}));
 
 		this.updateSettingTabbable(element, template);
 		template.elementDisposables.add(element.onDidChangeTabbable(() => {
@@ -1320,7 +1296,7 @@ class SettingComplexObjectRenderer extends SettingComplexRenderer implements ITr
 			showAddButton: false,
 			isReadOnly: true,
 		});
-		template.button.parentElement?.classList.toggle('hide', dataElement.hasPolicyValue || dataElement.isAgentsWindowReadOnly);
+		template.button.parentElement?.classList.toggle('hide', dataElement.hasPolicyValue);
 		super.renderValue(dataElement, template, onChange);
 	}
 }
@@ -1742,7 +1718,7 @@ abstract class SettingIncludeExcludeRenderer extends AbstractSettingRenderer imp
 
 	protected renderValue(dataElement: SettingsTreeSettingElement, template: ISettingIncludeExcludeItemTemplate, onChange: (value: string) => void): void {
 		const value = getIncludeExcludeDisplayValue(dataElement);
-		template.includeExcludeWidget.setValue(value, { isReadOnly: dataElement.hasPolicyValue || dataElement.isAgentsWindowReadOnly });
+		template.includeExcludeWidget.setValue(value, { isReadOnly: dataElement.hasPolicyValue });
 		template.context = dataElement;
 		template.elementDisposables.add(toDisposable(() => {
 			template.includeExcludeWidget.cancelEdit();
@@ -1813,7 +1789,7 @@ abstract class AbstractSettingTextRenderer extends AbstractSettingRenderer imple
 	protected renderValue(dataElement: SettingsTreeSettingElement, template: ISettingTextItemTemplate, onChange: (value: string) => void): void {
 		template.onChange = undefined;
 		template.inputBox.value = dataElement.value;
-		template.inputBox.setEnabled(!dataElement.hasPolicyValue && !dataElement.isAgentsWindowReadOnly);
+		template.inputBox.setEnabled(!dataElement.hasPolicyValue);
 		template.inputBox.setAriaLabel(dataElement.setting.key);
 		template.onChange = value => {
 			if (!renderValidations(dataElement, template, false)) {
@@ -1963,7 +1939,7 @@ class SettingEnumRenderer extends AbstractSettingRenderer implements ITreeRender
 
 		template.selectBox.setOptions(displayOptions);
 		template.selectBox.setAriaLabel(dataElement.setting.key);
-		template.selectBox.setEnabled(!dataElement.hasPolicyValue && !dataElement.isAgentsWindowReadOnly);
+		template.selectBox.setEnabled(!dataElement.hasPolicyValue);
 
 		let idx = settingEnum.indexOf(dataElement.value);
 		if (idx === -1) {
@@ -2034,7 +2010,7 @@ class SettingNumberRenderer extends AbstractSettingRenderer implements ITreeRend
 			dataElement.value.toString() : '';
 		template.inputBox.step = dataElement.valueType.includes('integer') ? '1' : 'any';
 		template.inputBox.setAriaLabel(dataElement.setting.key);
-		template.inputBox.setEnabled(!dataElement.hasPolicyValue && !dataElement.isAgentsWindowReadOnly);
+		template.inputBox.setEnabled(!dataElement.hasPolicyValue);
 		template.onChange = value => {
 			if (!renderValidations(dataElement, template, false)) {
 				onChange(nullNumParseFn(value));
@@ -2117,7 +2093,7 @@ class SettingBoolRenderer extends AbstractSettingRenderer implements ITreeRender
 	protected renderValue(dataElement: SettingsTreeSettingElement, template: ISettingBoolItemTemplate, onChange: (value: boolean) => void): void {
 		template.onChange = undefined;
 		template.checkbox.checked = dataElement.value;
-		if (dataElement.hasPolicyValue || dataElement.isAgentsWindowReadOnly) {
+		if (dataElement.hasPolicyValue) {
 			template.checkbox.disable();
 			template.descriptionElement.classList.add('disabled');
 		} else {
@@ -2142,74 +2118,12 @@ class SettingBoolRenderer extends AbstractSettingRenderer implements ITreeRender
 	}
 }
 
-type ManageExtensionClickTelemetryClassification = {
-	extensionId: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The extension the user went to manage.' };
-	owner: 'rzhao271';
-	comment: 'Event used to gain insights into when users interact with an extension management setting';
-};
-
-class SettingsExtensionToggleRenderer extends AbstractSettingRenderer implements ITreeRenderer<SettingsTreeSettingElement, never, ISettingExtensionToggleItemTemplate> {
-	templateId = SETTINGS_EXTENSION_TOGGLE_TEMPLATE_ID;
-
-	private readonly _onDidDismissExtensionSetting = this._register(new Emitter<string>());
-	readonly onDidDismissExtensionSetting = this._onDidDismissExtensionSetting.event;
-
-	renderTemplate(_container: HTMLElement): ISettingExtensionToggleItemTemplate {
-		const common = super.renderCommonTemplate(null, _container, 'extension-toggle');
-
-		const actionButton = new Button(common.containerElement, {
-			title: false,
-			...defaultButtonStyles
-		});
-		actionButton.element.classList.add('setting-item-extension-toggle-button');
-		actionButton.label = localize('showExtension', "Show Extension");
-
-		const dismissButton = new Button(common.containerElement, {
-			title: false,
-			secondary: true,
-			...defaultButtonStyles
-		});
-		dismissButton.element.classList.add('setting-item-extension-dismiss-button');
-		dismissButton.label = localize('dismiss', "Dismiss");
-
-		const template: ISettingExtensionToggleItemTemplate = {
-			...common,
-			actionButton,
-			dismissButton
-		};
-
-		this.addSettingElementFocusHandler(template);
-
-		return template;
-	}
-
-	renderElement(element: ITreeNode<SettingsTreeSettingElement, never>, index: number, templateData: ISettingExtensionToggleItemTemplate): void {
-		super.renderSettingElement(element, index, templateData);
-	}
-
-	protected renderValue(dataElement: SettingsTreeSettingElement, template: ISettingExtensionToggleItemTemplate, onChange: (_: undefined) => void): void {
-		template.elementDisposables.clear();
-
-		const extensionId = dataElement.setting.displayExtensionId!;
-		template.elementDisposables.add(template.actionButton.onDidClick(async () => {
-			this._telemetryService.publicLog2<{ extensionId: String }, ManageExtensionClickTelemetryClassification>('ManageExtensionClick', { extensionId });
-			this._commandService.executeCommand('extension.open', extensionId);
-		}));
-
-		template.elementDisposables.add(template.dismissButton.onDidClick(async () => {
-			this._telemetryService.publicLog2<{ extensionId: String }, ManageExtensionClickTelemetryClassification>('DismissExtensionClick', { extensionId });
-			this._onDidDismissExtensionSetting.fire(extensionId);
-		}));
-	}
-}
-
 export class SettingTreeRenderers extends Disposable {
 	readonly onDidClickOverrideElement: Event<ISettingOverrideClickEvent>;
 
 	private readonly _onDidChangeSetting = this._register(new Emitter<ISettingChangeEvent>());
 	readonly onDidChangeSetting: Event<ISettingChangeEvent>;
 
-	readonly onDidDismissExtensionSetting: Event<string>;
 
 	readonly onDidOpenSettings: Event<string>;
 
@@ -2229,7 +2143,6 @@ export class SettingTreeRenderers extends Disposable {
 		@IInstantiationService private readonly _instantiationService: IInstantiationService,
 		@IContextMenuService private readonly _contextMenuService: IContextMenuService,
 		@IContextViewService private readonly _contextViewService: IContextViewService,
-		@IUserDataSyncEnablementService private readonly _userDataSyncEnablementService: IUserDataSyncEnablementService,
 	) {
 		super();
 		this.settingActions = [
@@ -2253,8 +2166,6 @@ export class SettingTreeRenderers extends Disposable {
 		];
 
 		const actionFactory = (setting: ISetting, settingTarget: SettingsTarget) => this.getActionsForSetting(setting, settingTarget);
-		const emptyActionFactory = (_: ISetting) => [];
-		const extensionRenderer = this._instantiationService.createInstance(SettingsExtensionToggleRenderer, [], emptyActionFactory);
 		const settingRenderers = [
 			this._instantiationService.createInstance(SettingBoolRenderer, this.settingActions, actionFactory),
 			this._instantiationService.createInstance(SettingNumberRenderer, this.settingActions, actionFactory),
@@ -2267,8 +2178,7 @@ export class SettingTreeRenderers extends Disposable {
 			this._instantiationService.createInstance(SettingIncludeRenderer, this.settingActions, actionFactory),
 			this._instantiationService.createInstance(SettingEnumRenderer, this.settingActions, actionFactory),
 			this._instantiationService.createInstance(SettingObjectRenderer, this.settingActions, actionFactory),
-			this._instantiationService.createInstance(SettingBoolObjectRenderer, this.settingActions, actionFactory),
-			extensionRenderer
+			this._instantiationService.createInstance(SettingBoolObjectRenderer, this.settingActions, actionFactory)
 		];
 
 		this.onDidClickOverrideElement = Event.any(...settingRenderers.map(r => r.onDidClickOverrideElement));
@@ -2276,7 +2186,6 @@ export class SettingTreeRenderers extends Disposable {
 			...settingRenderers.map(r => r.onDidChangeSetting),
 			this._onDidChangeSetting.event
 		);
-		this.onDidDismissExtensionSetting = extensionRenderer.onDidDismissExtensionSetting;
 		this.onDidOpenSettings = Event.any(...settingRenderers.map(r => r.onDidOpenSettings));
 		this.onDidClickSettingLink = Event.any(...settingRenderers.map(r => r.onDidClickSettingLink));
 		this.onDidFocusSetting = Event.any(...settingRenderers.map(r => r.onDidFocusSetting));
@@ -2294,9 +2203,6 @@ export class SettingTreeRenderers extends Disposable {
 		const actions: IAction[] = [];
 		if (!(setting.scope && APPLICATION_SCOPES.includes(setting.scope)) && settingTarget === ConfigurationTarget.USER_LOCAL) {
 			actions.push(this._instantiationService.createInstance(ApplySettingToAllProfilesAction, setting));
-		}
-		if (this._userDataSyncEnablementService.isEnabled() && !setting.disallowSyncIgnore) {
-			actions.push(this._instantiationService.createInstance(SyncSettingAction, setting));
 		}
 		if (actions.length) {
 			actions.splice(0, 0, new Separator());
@@ -2542,10 +2448,6 @@ class SettingsTreeDelegate extends CachedListVirtualDelegate<SettingsTreeGroupCh
 		}
 
 		if (element instanceof SettingsTreeSettingElement) {
-			if (element.valueType === SettingValueType.ExtensionToggle) {
-				return SETTINGS_EXTENSION_TOGGLE_TEMPLATE_ID;
-			}
-
 			const invalidTypeError = element.isConfigured && getInvalidTypeError(element.value, element.setting.type);
 			if (invalidTypeError) {
 				return SETTINGS_COMPLEX_TEMPLATE_ID;
@@ -2808,49 +2710,6 @@ class CopySettingAsURLAction extends Action {
 	}
 }
 
-class SyncSettingAction extends Action {
-	static readonly ID = 'settings.stopSyncingSetting';
-	static readonly LABEL = localize('stopSyncingSetting', "Sync This Setting");
-
-	constructor(
-		private readonly setting: ISetting,
-		@IConfigurationService private readonly configService: IConfigurationService,
-	) {
-		super(SyncSettingAction.ID, SyncSettingAction.LABEL);
-		this._register(Event.filter(configService.onDidChangeConfiguration, e => e.affectsConfiguration('settingsSync.ignoredSettings'))(() => this.update()));
-		this.update();
-	}
-
-	async update() {
-		const ignoredSettings = getIgnoredSettings(getDefaultIgnoredSettings(), this.configService);
-		this.checked = !ignoredSettings.includes(this.setting.key);
-	}
-
-	override async run(): Promise<void> {
-		// first remove the current setting completely from ignored settings
-		let currentValue = [...this.configService.getValue<string[]>('settingsSync.ignoredSettings')];
-		currentValue = currentValue.filter(v => v !== this.setting.key && v !== `-${this.setting.key}`);
-
-		const defaultIgnoredSettings = getDefaultIgnoredSettings();
-		const isDefaultIgnored = defaultIgnoredSettings.includes(this.setting.key);
-		const askedToSync = !this.checked;
-
-		// If asked to sync, then add only if it is ignored by default
-		if (askedToSync && isDefaultIgnored) {
-			currentValue.push(`-${this.setting.key}`);
-		}
-
-		// If asked not to sync, then add only if it is not ignored by default
-		if (!askedToSync && !isDefaultIgnored) {
-			currentValue.push(this.setting.key);
-		}
-
-		this.configService.updateValue('settingsSync.ignoredSettings', currentValue.length ? currentValue : undefined, ConfigurationTarget.USER);
-
-		return Promise.resolve(undefined);
-	}
-
-}
 
 class ApplySettingToAllProfilesAction extends Action {
 	static readonly ID = 'settings.applyToAllProfiles';

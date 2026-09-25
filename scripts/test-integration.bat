@@ -59,9 +59,8 @@ if defined SHOW_HELP (
 	echo   --help, -h                    show this help
 	echo.
 	echo Available suites:
-	echo   api-folder, api-workspace, colorize, terminal-suggest, typescript,
-	echo   markdown, emmet, git, git-base, ipynb, notebook-renderers,
-	echo   configuration-editing, github-authentication, copilot, css, html, json
+	echo   terminal-suggest, typescript, markdown, emmet, git, git-base,
+	echo   configuration-editing, css, html, json
 	echo.
 	echo All other options are forwarded to the node.js test runner ^(see scripts\test.bat --help^).
 	echo Note: extra options are not forwarded to extension host suites ^(--suite mode^).
@@ -72,8 +71,8 @@ if defined SHOW_HELP (
 	echo   %~nx0 --grep "some test name"
 	echo   %~nx0 --runGlob "**\*.integrationTest.js"
 	echo   %~nx0 --suite git                             # run only Git tests
-	echo   %~nx0 --suite "api-folder,api-workspace"       # run multiple suites
-	echo   %~nx0 --suite api-folder --grep "some test"   # grep within a suite
+	echo   %~nx0 --suite "git,git-base"       # run multiple suites
+	echo   %~nx0 --suite git --grep "some test"   # grep within a suite
 	exit /b 0
 )
 
@@ -111,12 +110,12 @@ echo Storing log files into '%VSCODELOGSDIR%'.
 :: Validate --suite filter matches at least one known suite
 if defined SUITE_FILTER (
 	set "_any_match="
-	for %%s in (api-folder api-workspace colorize terminal-suggest typescript markdown emmet git git-base ipynb notebook-renderers configuration-editing github-authentication copilot css html json) do (
+	for %%s in (terminal-suggest typescript markdown emmet git git-base configuration-editing css html json) do (
 		call :should_run_suite %%s && set "_any_match=1"
 	)
 	if not defined _any_match (
 		echo Error: no suites match filter '%SUITE_FILTER%'
-		echo Available suites: api-folder api-workspace colorize terminal-suggest typescript markdown emmet git git-base ipynb notebook-renderers configuration-editing github-authentication copilot css html json
+		echo Available suites: terminal-suggest typescript markdown emmet git git-base configuration-editing css html json
 		goto :failed
 	)
 )
@@ -132,14 +131,8 @@ if defined RUN_GLOB (
 ) else if defined RUN_FILE (
 	call .\scripts\test.bat %*
 ) else (
-	if "%VSCODE_SKIP_AGENT_HOST_E2E%"=="1" (
-		echo Skipping Agent Host E2E tests because no relevant files changed.
-	) else (
-		call node .\scripts\test-agent-host-e2e.ts %*
-		if errorlevel 1 goto :failed
-	)
 	set VSCODE_SKIP_PRELAUNCH=1
-	call .\scripts\test.bat --runGlob **\*.integrationTest.js --excludeRunGlob "**/agentHost/test/node/e2e/{providers/*AgentHostE2E,conformance/*}.integrationTest.js" %*
+	call .\scripts\test.bat --runGlob **\*.integrationTest.js %*
 )
 if %errorlevel% neq 0 exit /b %errorlevel%
 :skip_nodejs_tests
@@ -160,38 +153,13 @@ if defined GREP_PATTERN set "MOCHA_GREP=%GREP_PATTERN%"
 
 set API_TESTS_EXTRA_ARGS=--disable-telemetry --disable-experiments --skip-welcome --skip-release-notes --crash-reporter-directory=%VSCODECRASHDIR% --logsPath=%VSCODELOGSDIR% --no-cached-data --disable-updates --use-inmemory-secretstorage --disable-extensions --disable-workspace-trust --user-data-dir=%VSCODEUSERDATADIR%
 
-call :should_run_suite api-folder || goto skip_api_folder
-echo.
-echo ### API tests (folder)
-call "%INTEGRATION_TEST_ELECTRON_PATH%" %SCRIPT_DIR%\..\extensions\vscode-api-tests\testWorkspace --enable-proposed-api=vscode.vscode-api-tests --extensionDevelopmentPath=%SCRIPT_DIR%\..\extensions\vscode-api-tests --extensionTestsPath=%SCRIPT_DIR%\..\extensions\vscode-api-tests\out\singlefolder-tests %API_TESTS_EXTRA_ARGS%
-if %errorlevel% neq 0 exit /b %errorlevel%
-:skip_api_folder
-
-call :should_run_suite api-workspace || goto skip_api_workspace
-echo.
-echo ### API tests (workspace)
-call "%INTEGRATION_TEST_ELECTRON_PATH%" %SCRIPT_DIR%\..\extensions\vscode-api-tests\testworkspace.code-workspace --enable-proposed-api=vscode.vscode-api-tests --extensionDevelopmentPath=%SCRIPT_DIR%\..\extensions\vscode-api-tests --extensionTestsPath=%SCRIPT_DIR%\..\extensions\vscode-api-tests\out\workspace-tests %API_TESTS_EXTRA_ARGS%
-if %errorlevel% neq 0 exit /b %errorlevel%
-:skip_api_workspace
-
-call :should_run_suite colorize || goto skip_colorize
-echo.
-echo ### Colorize tests
-if defined GREP_PATTERN (
-	call npm run test-extension -- -l vscode-colorize-tests --grep "%GREP_PATTERN%"
-) else (
-	call npm run test-extension -- -l vscode-colorize-tests
-)
-if %errorlevel% neq 0 exit /b %errorlevel%
-:skip_colorize
-
 call :should_run_suite terminal-suggest || goto skip_terminal_suggest
 echo.
 echo ### Terminal Suggest tests
 if defined GREP_PATTERN (
-	call npm run test-extension -- -l terminal-suggest --enable-proposed-api=vscode.vscode-api-tests --grep "%GREP_PATTERN%"
+	call npm run test-extension -- -l terminal-suggest --grep "%GREP_PATTERN%"
 ) else (
-	call npm run test-extension -- -l terminal-suggest --enable-proposed-api=vscode.vscode-api-tests
+	call npm run test-extension -- -l terminal-suggest
 )
 if %errorlevel% neq 0 exit /b %errorlevel%
 :skip_terminal_suggest
@@ -242,28 +210,6 @@ if defined GREP_PATTERN (
 if %errorlevel% neq 0 exit /b %errorlevel%
 :skip_git_base
 
-call :should_run_suite ipynb || goto skip_ipynb
-echo.
-echo ### Ipynb tests
-if defined GREP_PATTERN (
-	call npm run test-extension -- -l ipynb --grep "%GREP_PATTERN%"
-) else (
-	call npm run test-extension -- -l ipynb
-)
-if %errorlevel% neq 0 exit /b %errorlevel%
-:skip_ipynb
-
-call :should_run_suite notebook-renderers || goto skip_notebook_renderers
-echo.
-echo ### Notebook Output tests
-if defined GREP_PATTERN (
-	call npm run test-extension -- -l notebook-renderers --grep "%GREP_PATTERN%"
-) else (
-	call npm run test-extension -- -l notebook-renderers
-)
-if %errorlevel% neq 0 exit /b %errorlevel%
-:skip_notebook_renderers
-
 call :should_run_suite configuration-editing || goto skip_configuration_editing
 echo.
 echo ### Configuration editing tests
@@ -274,28 +220,6 @@ if defined GREP_PATTERN (
 )
 if %errorlevel% neq 0 exit /b %errorlevel%
 :skip_configuration_editing
-
-call :should_run_suite github-authentication || goto skip_github_authentication
-echo.
-echo ### GitHub Authentication tests
-if defined GREP_PATTERN (
-	call npm run test-extension -- -l github-authentication --grep "%GREP_PATTERN%"
-) else (
-	call npm run test-extension -- -l github-authentication
-)
-if %errorlevel% neq 0 exit /b %errorlevel%
-:skip_github_authentication
-
-call :should_run_suite copilot || goto skip_copilot
-echo.
-echo ### Copilot tests
-if defined GREP_PATTERN (
-	call npm run test-extension -- -l copilot --grep "%GREP_PATTERN%"
-) else (
-	call npm run test-extension -- -l copilot
-)
-if %errorlevel% neq 0 exit /b %errorlevel%
-:skip_copilot
 
 :: Tests standalone (CommonJS)
 

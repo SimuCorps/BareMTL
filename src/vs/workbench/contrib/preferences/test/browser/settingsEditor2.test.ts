@@ -8,7 +8,7 @@ import * as sinon from 'sinon';
 import * as DOM from '../../../../../base/browser/dom.js';
 import { setARIAContainer } from '../../../../../base/browser/ui/aria/aria.js';
 import { SplitView } from '../../../../../base/browser/ui/splitview/splitview.js';
-import { ITreeElement, TreeVisibility } from '../../../../../base/browser/ui/tree/tree.js';
+import { ITreeElement } from '../../../../../base/browser/ui/tree/tree.js';
 import { Delayer, timeout } from '../../../../../base/common/async.js';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
@@ -21,18 +21,16 @@ import { TestConfigurationService } from '../../../../../platform/configuration/
 import { IContextViewService } from '../../../../../platform/contextview/browser/contextView.js';
 import { IExtensionGalleryService, IExtensionManagementService } from '../../../../../platform/extensionManagement/common/extensionManagement.js';
 import { IEditorProgressService, IProgressRunner } from '../../../../../platform/progress/common/progress.js';
-import { IUserDataSyncEnablementService } from '../../../../../platform/userDataSync/common/userDataSync.js';
 import { ExperimentalSettingsService, IExperimentalSettingsService } from '../../../../services/configuration/common/experimentalSettings.js';
 import { IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
 import { IPreferencesService, ISetting, ISettingsGroup, SettingMatchType } from '../../../../services/preferences/common/preferences.js';
 import { Settings2EditorModel } from '../../../../services/preferences/common/preferencesModels.js';
-import { IUserDataSyncWorkbenchService } from '../../../../services/userDataSync/common/userDataSync.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { SuggestEnabledInputWithHistory } from '../../../codeEditor/browser/suggestEnabledInput/suggestEnabledInput.js';
 import { ADVANCED_SETTING_TAG, IPreferencesSearchService, POLICY_SETTING_TAG } from '../../common/preferences.js';
 import { isSettingsSearchUpToDate, SettingsEditor2 } from '../../browser/settingsEditor2.js';
 import { SettingsTree, SettingsTreeFilter, SettingTreeRenderers } from '../../browser/settingsTree.js';
-import { parseQuery, SearchResultIdx, SettingsTreeElement, SettingsTreeGroupElement, SettingsTreeModel, SettingsTreeSettingElement } from '../../browser/settingsTreeModels.js';
+import { parseQuery, SearchResultIdx, SettingsTreeElement, SettingsTreeModel, SettingsTreeSettingElement } from '../../browser/settingsTreeModels.js';
 import { TOCTree, TOCTreeModel } from '../../browser/tocTree.js';
 import { SettingsTargetsWidget } from '../../browser/preferencesWidgets.js';
 
@@ -53,8 +51,6 @@ suite('SettingsEditor2', () => {
 			const instantiationService = workbenchInstantiationService({ configurationService: () => configuration }, store);
 			instantiationService.stub(IPreferencesService, {});
 			instantiationService.stub(IPreferencesSearchService, {});
-			instantiationService.stub(IUserDataSyncWorkbenchService, {});
-			instantiationService.stub(IUserDataSyncEnablementService, {});
 			instantiationService.stub(IExtensionManagementService, { onDidInstallExtensions: Event.None, onDidUninstallExtension: Event.None });
 			instantiationService.stub(IExtensionGalleryService, { isEnabled: () => false });
 			instantiationService.stub(IEditorProgressService, { show: () => new class extends mock<IProgressRunner>() { override done(): void { } }() });
@@ -156,7 +152,7 @@ suite('SettingsEditor2', () => {
 			editor['searchResultModel'] = editor['createFilterModel']();
 			const searchModel = editor['searchResultModel']!;
 			tocModel.currentSearchModel = searchModel;
-			editor['renderResultCountMessages'](false);
+			editor['renderResultCountMessages']();
 			editor['refreshTree']();
 			const rebuild = sinon.spy(searchModel, 'updateChildren');
 			const read = () => ({
@@ -302,49 +298,6 @@ suite('SettingsEditor2', () => {
 				}),
 				count: read().count,
 			}, { keys: ['test.assigned'], count: '1 Setting Found' });
-		});
-
-		test('assignment filter includes advanced settings in the resolved TOC and category filtering', async () => {
-			const settingKey = 'chat.detectParticipant.enabled';
-			const { editor, assignments, settingsModel, viewState, treeFilter } = createEditor('', true, [settingKey, 'chat.detectParticipant.unassigned']);
-			await editor['onConfigUpdate']();
-			const hiddenInitially = !settingsModel.getElementsByName(settingKey)?.length;
-			assignments.setAssignment(settingKey, true);
-			await timeout(0);
-
-			const changeQuery = async (query: string) => {
-				viewState.query = query;
-				await editor['triggerSearch'](query, true);
-			};
-			await changeQuery('@tag:expassigned');
-			const searchModel = editor['searchResultModel']!;
-			const assigned = searchModel.root.children[0];
-			assert.ok(assigned instanceof SettingsTreeSettingElement);
-			const chat = settingsModel.root.children.find((child): child is SettingsTreeGroupElement => child instanceof SettingsTreeGroupElement && child.id === 'chat');
-			const context = chat?.children.find((child): child is SettingsTreeGroupElement => child instanceof SettingsTreeGroupElement && child.id === 'chat/context');
-			const categoryVisible = context ? treeFilter.filter(context, TreeVisibility.Visible) : false;
-			viewState.categoryFilter = context ?? settingsModel.root;
-			const categoryContainsAssignment = treeFilter.filter(assigned, TreeVisibility.Visible);
-			const active = {
-				inRoot: !!settingsModel.getElementsByName(settingKey)?.length,
-				resultCount: searchModel.getUniqueResultsCount(),
-				rootCount: settingsModel.root.count,
-				categoryCount: context?.count,
-				categoryVisible,
-				categoryContainsAssignment,
-			};
-			viewState.categoryFilter = undefined;
-			await changeQuery('');
-			const hiddenAfterRemovingFilter = !settingsModel.getElementsByName(settingKey)?.length;
-			await changeQuery('@tag:expassigned');
-			const restored = !!settingsModel.getElementsByName(settingKey)?.length;
-
-			assert.deepStrictEqual({ hiddenInitially, active, hiddenAfterRemovingFilter, restored }, {
-				hiddenInitially: true,
-				active: { inRoot: true, resultCount: 1, rootCount: 1, categoryCount: 1, categoryVisible: true, categoryContainsAssignment: true },
-				hiddenAfterRemovingFilter: true,
-				restored: true,
-			});
 		});
 
 		test('advanced assignment exemption applies to text search and preserves policy filtering', async () => {

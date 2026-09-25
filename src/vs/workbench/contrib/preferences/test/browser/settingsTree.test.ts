@@ -34,7 +34,6 @@ class TestSettingRenderer extends AbstractSettingRenderer {
 					dispose() { },
 					updateScopeOverrides() { },
 					updateWorkspaceTrust() { },
-					updateSyncIgnored() { },
 					updateDefaultOverrideIndicator() { },
 					updatePreviewIndicator() { },
 					updateAdvancedIndicator() { },
@@ -44,7 +43,6 @@ class TestSettingRenderer extends AbstractSettingRenderer {
 			undefined!,
 			undefined!,
 			new TestConfigurationService(),
-			undefined!,
 			undefined!,
 			undefined!,
 			undefined!,
@@ -86,10 +84,8 @@ function createSettingElement(deprecationMessageSeverity: 'warning' | 'info'): S
 		true,
 		undefined,
 		undefined!,
-		{ extensionRecommendations: undefined } as never,
 		{ currentProfile: { isDefault: true } } as never,
 		new TestConfigurationService() as unknown as never,
-		false,
 		new class extends mock<IExperimentalSettingsService>() { override hasAssignment() { return false; } }(),
 	);
 	element.inspectSelf = () => { };

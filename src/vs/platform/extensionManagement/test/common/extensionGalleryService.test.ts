@@ -9,7 +9,6 @@ import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { Event } from '../../../../base/common/event.js';
 import { joinPath } from '../../../../base/common/resources.js';
 import { URI } from '../../../../base/common/uri.js';
-import { isUUID } from '../../../../base/common/uuid.js';
 import { IRequestContext, IRequestOptions } from '../../../../base/parts/request/common/request.js';
 import { mock } from '../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
@@ -158,12 +157,9 @@ suite('Extension Gallery Service', () => {
 		return new ExtensionGalleryServiceWithNoStorageService(requestService, logService, environmentService, NullTelemetryService, fileService, productService, configurationService, allowedExtensionsService, createExtensionGalleryManifestService());
 	}
 
-	test('marketplace machine id', async () => {
+	test('marketplace headers never include a machine id', async () => {
 		const headers = await resolveMarketplaceHeaders(product.version, productService, environmentService, configurationService, fileService, storageService, NullTelemetryService);
-		assert.ok(headers['X-Market-User-Id']);
-		assert.ok(isUUID(headers['X-Market-User-Id']));
-		const headers2 = await resolveMarketplaceHeaders(product.version, productService, environmentService, configurationService, fileService, storageService, NullTelemetryService);
-		assert.strictEqual(headers['X-Market-User-Id'], headers2['X-Market-User-Id']);
+		assert.strictEqual(headers['X-Market-User-Id'], undefined);
 	});
 
 	test('getExtensions uses query API for extension info without uuid', async () => {

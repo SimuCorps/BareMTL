@@ -76,7 +76,6 @@ export class MenuId {
 	static readonly DebugCallStackContext = new MenuId('DebugCallStackContext');
 	static readonly DebugConsoleContext = new MenuId('DebugConsoleContext');
 	static readonly DebugVariablesContext = new MenuId('DebugVariablesContext');
-	static readonly NotebookVariablesContext = new MenuId('NotebookVariablesContext');
 	static readonly DebugHoverContext = new MenuId('DebugHoverContext');
 	static readonly DebugWatchContext = new MenuId('DebugWatchContext');
 	static readonly DebugToolBar = new MenuId('DebugToolBar');
@@ -318,7 +317,6 @@ export class MenuId {
 	static readonly BrowserEmulationToolbar = new MenuId('BrowserEmulationToolbar');
 	static readonly AgentSessionsViewerFilterSubMenu = new MenuId('AgentSessionsViewerFilterSubMenu');
 	static readonly AgentSessionsExternalFilterSubMenu = new MenuId('AgentSessionsExternalFilterSubMenu');
-	static readonly AgentSessionsContext = new MenuId('AgentSessionsContext');
 	static readonly AgentSessionSectionContext = new MenuId('AgentSessionSectionContext');
 	static readonly AgentSessionsCreateSubMenu = new MenuId('AgentSessionsCreateSubMenu');
 	static readonly AgentSessionsToolbar = new MenuId('AgentSessionsToolbar');

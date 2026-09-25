@@ -26,7 +26,6 @@ import { IExtHostConfiguration } from './extHostConfiguration.js';
 import { IExtHostEditorTabs } from './extHostEditorTabs.js';
 import { IExtHostExtensionService } from './extHostExtensionService.js';
 import { IExtHostRpcService } from './extHostRpcService.js';
-import { IExtHostTesting } from './extHostTesting.js';
 import * as Convert from './extHostTypeConverters.js';
 import { Breakpoint, DataBreakpoint, DebugAdapterExecutable, DebugAdapterInlineImplementation, DebugAdapterNamedPipeServer, DebugAdapterServer, DebugConsoleMode, DebugStackFrame, DebugThread, Disposable, FunctionBreakpoint, Location, Position, setBreakpointId, SourceBreakpoint, ThemeIcon } from './extHostTypes.js';
 import { IExtHostVariableResolverProvider } from './extHostVariableResolverService.js';
@@ -126,7 +125,6 @@ export abstract class ExtHostDebugServiceBase extends DisposableCls implements I
 		@IExtHostEditorTabs protected readonly _editorTabs: IExtHostEditorTabs,
 		@IExtHostVariableResolverProvider private readonly _variableResolver: IExtHostVariableResolverProvider,
 		@IExtHostCommands private readonly _commands: IExtHostCommands,
-		@IExtHostTesting private readonly _testing: IExtHostTesting,
 	) {
 		super();
 
@@ -483,8 +481,6 @@ export abstract class ExtHostDebugServiceBase extends DisposableCls implements I
 	}
 
 	public startDebugging(folder: vscode.WorkspaceFolder | undefined, nameOrConfig: string | vscode.DebugConfiguration, options: vscode.DebugSessionOptions): Promise<boolean> {
-		const testRunMeta = options.testRun && this._testing.getMetadataForRun(options.testRun);
-
 		return this._debugServiceProxy.$startDebugging(folder ? folder.uri : undefined, nameOrConfig, {
 			parentSessionID: options.parentSession ? options.parentSession.id : undefined,
 			lifecycleManagedByParent: options.lifecycleManagedByParent,
@@ -492,10 +488,6 @@ export abstract class ExtHostDebugServiceBase extends DisposableCls implements I
 			noDebug: options.noDebug,
 			compact: options.compact,
 			suppressSaveBeforeStart: options.suppressSaveBeforeStart,
-			testRun: testRunMeta && {
-				runId: testRunMeta.runId,
-				taskId: testRunMeta.taskId,
-			},
 
 			// Check debugUI for back-compat, #147264
 			// eslint-disable-next-line local/code-no-any-casts
@@ -1299,9 +1291,8 @@ export class WorkerExtHostDebugService extends ExtHostDebugServiceBase {
 		@IExtHostEditorTabs editorTabs: IExtHostEditorTabs,
 		@IExtHostVariableResolverProvider variableResolver: IExtHostVariableResolverProvider,
 		@IExtHostCommands commands: IExtHostCommands,
-		@IExtHostTesting testing: IExtHostTesting,
 	) {
-		super(extHostRpcService, workspaceService, extensionService, configurationService, editorTabs, variableResolver, commands, testing);
+		super(extHostRpcService, workspaceService, extensionService, configurationService, editorTabs, variableResolver, commands);
 	}
 }
 

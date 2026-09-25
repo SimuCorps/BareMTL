@@ -9,7 +9,6 @@ import { Schemas, matchesSomeScheme } from '../../../base/common/network.js';
 import { URI } from '../../../base/common/uri.js';
 import { IPosition } from '../../../editor/common/core/position.js';
 import { IRange } from '../../../editor/common/core/range.js';
-import { ISelection } from '../../../editor/common/core/selection.js';
 import * as languages from '../../../editor/common/languages.js';
 import { decodeSemanticTokensDto } from '../../../editor/common/services/semanticTokensDto.js';
 import { validateWhenClauses } from '../../../platform/contextkey/common/contextkey.js';
@@ -19,11 +18,8 @@ import { ApiCommand, ApiCommandArgument, ApiCommandResult, ExtHostCommands } fro
 import { CustomCodeAction } from './extHostLanguageFeatures.js';
 import * as typeConverters from './extHostTypeConverters.js';
 import * as types from './extHostTypes.js';
-import { TransientCellMetadata, TransientDocumentMetadata } from '../../contrib/notebook/common/notebookCommon.js';
 import * as search from '../../contrib/search/common/search.js';
 import type * as vscode from 'vscode';
-import { PromptsType } from '../../contrib/chat/common/promptSyntax/promptTypes.js';
-import type { IExtensionPromptFileResult } from '../../contrib/chat/common/promptSyntax/chatPromptFilesContribution.js';
 
 //#region --- NEW world
 
@@ -383,37 +379,6 @@ const newCommands: ApiCommand[] = [
 		})
 	),
 
-	// --- notebooks
-	new ApiCommand(
-		'vscode.resolveNotebookContentProviders', '_resolveNotebookContentProvider', 'Resolve Notebook Content Providers',
-		[
-			// new ApiCommandArgument<string, string>('viewType', '', v => typeof v === 'string', v => v),
-			// new ApiCommandArgument<string, string>('displayName', '', v => typeof v === 'string', v => v),
-			// new ApiCommandArgument<object, object>('options', '', v => typeof v === 'object', v => v),
-		],
-		new ApiCommandResult<{
-			viewType: string;
-			displayName: string;
-			options: { transientOutputs: boolean; transientCellMetadata: TransientCellMetadata; transientDocumentMetadata: TransientDocumentMetadata };
-			filenamePattern: (vscode.GlobPattern | { include: vscode.GlobPattern; exclude: vscode.GlobPattern })[];
-		}[], {
-			viewType: string;
-			displayName: string;
-			filenamePattern: (vscode.GlobPattern | { include: vscode.GlobPattern; exclude: vscode.GlobPattern })[];
-			options: vscode.NotebookDocumentContentOptions;
-		}[] | undefined>('A promise that resolves to an array of NotebookContentProvider static info objects.', tryMapWith(item => {
-			return {
-				viewType: item.viewType,
-				displayName: item.displayName,
-				options: {
-					transientOutputs: item.options.transientOutputs,
-					transientCellMetadata: item.options.transientCellMetadata,
-					transientDocumentMetadata: item.options.transientDocumentMetadata
-				},
-				filenamePattern: item.filenamePattern.map(pattern => typeConverters.NotebookExclusiveDocumentPattern.to(pattern))
-			};
-		}))
-	),
 	// --- debug support
 	new ApiCommand(
 		'vscode.executeInlineValueProvider', '_executeInlineValueProvider', 'Execute inline value provider',
@@ -505,28 +470,6 @@ const newCommands: ApiCommand[] = [
 		[ApiCommandArgument.TypeHierarchyItem],
 		new ApiCommandResult<ITypeHierarchyItemDto[], types.TypeHierarchyItem[]>('A promise that resolves to an array of TypeHierarchyItem-instances', v => v.map(typeConverters.TypeHierarchyItem.to))
 	),
-	// --- testing
-	new ApiCommand(
-		'vscode.revealTestInExplorer', '_revealTestInExplorer', 'Reveals a test instance in the explorer',
-		[ApiCommandArgument.TestItem],
-		ApiCommandResult.Void
-	),
-	new ApiCommand(
-		'vscode.startContinuousTestRun', 'testing.startContinuousRunFromExtension', 'Starts running the given tests with continuous run mode.',
-		[ApiCommandArgument.TestProfile, ApiCommandArgument.Arr(ApiCommandArgument.TestItem)],
-		ApiCommandResult.Void
-	),
-	new ApiCommand(
-		'vscode.stopContinuousTestRun', 'testing.stopContinuousRunFromExtension', 'Stops running the given tests with continuous run mode.',
-		[ApiCommandArgument.Arr(ApiCommandArgument.TestItem)],
-		ApiCommandResult.Void
-	),
-	// --- continue edit session
-	new ApiCommand(
-		'vscode.experimental.editSession.continue', '_workbench.editSessions.actions.continueEditSession', 'Continue the current edit session in a different workspace',
-		[ApiCommandArgument.Uri.with('workspaceUri', 'The target workspace to continue the current edit session in')],
-		ApiCommandResult.Void
-	),
 	// --- context keys
 	new ApiCommand(
 		'setContext', '_setContext', 'Set a custom context key value that can be used in when clauses.',
@@ -536,66 +479,7 @@ const newCommands: ApiCommand[] = [
 		],
 		ApiCommandResult.Void
 	),
-	// --- inline chat
-	new ApiCommand(
-		'vscode.editorChat.start', 'inlineChat.start', 'Invoke a new editor chat session',
-		[new ApiCommandArgument<InlineChatEditorApiArg | undefined, InlineChatRunOptions | undefined>('Run arguments', '', _v => true, v => {
-
-			if (!v) {
-				return undefined;
-			}
-
-			return {
-				initialRange: v.initialRange ? typeConverters.Range.from(v.initialRange) : undefined,
-				initialSelection: types.Selection.isSelection(v.initialSelection) ? typeConverters.Selection.from(v.initialSelection) : undefined,
-				message: v.message,
-				attachments: v.attachments,
-				autoSend: v.autoSend,
-				position: v.position ? typeConverters.Position.from(v.position) : undefined,
-				resolveOnResponse: v.resolveOnResponse
-			};
-		})],
-		ApiCommandResult.Void
-	),
-	// --- extension prompt files
-	new ApiCommand(
-		'vscode.extensionPromptFileProvider', '_listExtensionPromptFiles', 'Get all extension-contributed prompt files (custom agents, instructions, and prompt files).',
-		[],
-		new ApiCommandResult<IExtensionPromptFileResult[], { uri: vscode.Uri; type: PromptsType; extensionId: string }[]>(
-			'A promise that resolves to an array of objects containing uri, type, and extensionId.',
-			(value) => {
-				if (!value) {
-					return [];
-				}
-				return value.map(item => ({
-					uri: URI.revive(item.uri),
-					type: item.type,
-					extensionId: item.extensionId
-				}));
-			}
-		)
-	)
 ];
-
-type InlineChatEditorApiArg = {
-	initialRange?: vscode.Range;
-	initialSelection?: vscode.Selection;
-	message?: string;
-	attachments?: vscode.Uri[];
-	autoSend?: boolean;
-	position?: vscode.Position;
-	resolveOnResponse?: boolean;
-};
-
-type InlineChatRunOptions = {
-	initialRange?: IRange;
-	initialSelection?: ISelection;
-	message?: string;
-	attachments?: URI[];
-	autoSend?: boolean;
-	position?: IPosition;
-	resolveOnResponse?: boolean;
-};
 
 //#endregion
 

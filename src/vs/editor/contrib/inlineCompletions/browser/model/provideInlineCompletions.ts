@@ -278,7 +278,6 @@ function toInlineSuggestData(
 	);
 }
 
-export type InlineSuggestSku = { type: string; plan: string };
 
 export type InlineSuggestRequestInfo = {
 	startTime: number;
@@ -288,7 +287,6 @@ export type InlineSuggestRequestInfo = {
 	typingInterval: number;
 	typingIntervalCharacterCount: number;
 	availableProviders: ProviderId[];
-	sku: InlineSuggestSku | undefined;
 };
 
 export type InlineSuggestProviderRequestInfo = {
@@ -360,7 +358,6 @@ export class InlineSuggestData {
 		};
 		const mockRequestInfo: InlineSuggestRequestInfo = {
 			startTime: Date.now(),
-			sku: undefined,
 			editorType: InlineCompletionEditorType.TextEditor,
 			languageId: 'plaintext',
 			availableProviders: [],
@@ -524,8 +521,6 @@ export class InlineSuggestData {
 				renameDroppedRenameEdits: this._renameInfo?.droppedRenameEdits,
 				typingInterval: this._requestInfo.typingInterval,
 				typingIntervalCharacterCount: this._requestInfo.typingIntervalCharacterCount,
-				skuPlan: this._requestInfo.sku?.plan,
-				skuType: this._requestInfo.sku?.type,
 				availableProviders: this._requestInfo.availableProviders.map(p => p.toString()).join(','),
 				...this._viewData.renderData?.getData(),
 			};

@@ -4,15 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { Event } from '../../../../../base/common/event.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { ConfigurationTarget } from '../../../../../platform/configuration/common/configuration.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
 import { IProductService } from '../../../../../platform/product/common/productService.js';
-import { SyncStatus, IUserDataSyncService, IUserDataSyncEnablementService } from '../../../../../platform/userDataSync/common/userDataSync.js';
-import { IUserDataSyncWorkbenchService } from '../../../../services/userDataSync/common/userDataSync.js';
 import { IHostService } from '../../../../services/host/browser/host.js';
 import { SettingsChangeRelauncher } from '../../browser/relauncher.contribution.js';
 
@@ -32,12 +29,9 @@ suite('SettingsChangeRelauncher', () => {
 
 		const hostService = { hasFocus: true, restart: async () => { restartCount++; } } as Partial<IHostService> as IHostService;
 		const dialogService = { confirm: async () => { confirmCount++; return { confirmed: confirmResult }; } } as Partial<IDialogService> as IDialogService;
-		const userDataSyncService = { status: SyncStatus.Idle } as Partial<IUserDataSyncService> as IUserDataSyncService;
-		const userDataSyncEnablementService = { isEnabled: () => true } as Partial<IUserDataSyncEnablementService> as IUserDataSyncEnablementService;
-		const userDataSyncWorkbenchService = { onDidTurnOnSync: Event.None } as Partial<IUserDataSyncWorkbenchService> as IUserDataSyncWorkbenchService;
 		const productService = { nameLong: 'Test Product' } as Partial<IProductService> as IProductService;
 
-		disposables.add(new SettingsChangeRelauncher(hostService, configurationService, userDataSyncService, userDataSyncEnablementService, userDataSyncWorkbenchService, productService, dialogService));
+		disposables.add(new SettingsChangeRelauncher(hostService, configurationService, productService, dialogService));
 
 		return configurationService;
 	}
@@ -70,56 +64,12 @@ suite('SettingsChangeRelauncher', () => {
 		disposables.clear();
 	});
 
-	test('prompts to restart when chat.agentHost.claudeAgent.enabled changes', async () => {
-		confirmResult = true;
-		await changeSetting(
-			'chat.agentHost.claudeAgent.enabled',
-			() => ({ chat: { agentHost: { claudeAgent: { enabled: true } } } }),
-			c => c.chat.agentHost.claudeAgent.enabled = false);
-
-		assert.strictEqual(confirmCount, 1, 'should prompt to restart');
-		assert.strictEqual(restartCount, 1, 'should restart when confirmed');
-	});
-
-	test('does not prompt to restart when chat.agentHost.codexAgent.enabled changes', async () => {
-		confirmResult = true;
-		await changeSetting(
-			'chat.agentHost.codexAgent.enabled',
-			() => ({ chat: { agentHost: { codexAgent: { enabled: true } } } }),
-			c => c.chat.agentHost.codexAgent.enabled = false);
-
-		assert.strictEqual(confirmCount, 0, 'should not prompt to restart');
-		assert.strictEqual(restartCount, 0, 'should not restart');
-	});
-
-	test('does not prompt to restart when chat.agentHost.byokModels.enabled changes', async () => {
-		confirmResult = true;
-		await changeSetting(
-			'chat.agentHost.byokModels.enabled',
-			() => ({ chat: { agentHost: { byokModels: { enabled: true } } } }),
-			c => c.chat.agentHost.byokModels.enabled = false);
-
-		assert.strictEqual(confirmCount, 0, 'should not prompt to restart');
-		assert.strictEqual(restartCount, 0, 'should not restart');
-	});
-
-	test('prompts to restart when chat.editor.codex.preferAgentHost changes', async () => {
-		confirmResult = true;
-		await changeSetting(
-			'chat.editor.codex.preferAgentHost',
-			() => ({ chat: { editor: { codex: { preferAgentHost: true } } } }),
-			c => c.chat.editor.codex.preferAgentHost = false);
-
-		assert.strictEqual(confirmCount, 1, 'should prompt to restart');
-		assert.strictEqual(restartCount, 1, 'should restart when confirmed');
-	});
-
 	test('does not restart when the confirmation is declined', async () => {
 		confirmResult = false;
 		await changeSetting(
-			'chat.agentHost.claudeAgent.enabled',
-			() => ({ chat: { agentHost: { claudeAgent: { enabled: true } } } }),
-			c => c.chat.agentHost.claudeAgent.enabled = false);
+			'telemetry.feedback.enabled',
+			() => ({ telemetry: { feedback: { enabled: true } } }),
+			c => c.telemetry.feedback.enabled = false);
 
 		assert.strictEqual(confirmCount, 1, 'should prompt to restart');
 		assert.strictEqual(restartCount, 0, 'should not restart when declined');
@@ -128,9 +78,9 @@ suite('SettingsChangeRelauncher', () => {
 	test('does not prompt when only the default value changes', async () => {
 		confirmResult = true;
 		await changeSetting(
-			'chat.agentHost.claudeAgent.enabled',
-			() => ({ chat: { agentHost: { claudeAgent: { enabled: true } } } }),
-			c => c.chat.agentHost.claudeAgent.enabled = false,
+			'telemetry.feedback.enabled',
+			() => ({ telemetry: { feedback: { enabled: true } } }),
+			c => c.telemetry.feedback.enabled = false,
 			ConfigurationTarget.DEFAULT);
 
 		assert.strictEqual(confirmCount, 0, 'should not prompt for default changes');

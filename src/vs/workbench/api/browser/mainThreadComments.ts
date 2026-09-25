@@ -23,7 +23,6 @@ import { Codicon } from '../../../base/common/codicons.js';
 import { registerIcon } from '../../../platform/theme/common/iconRegistry.js';
 import { localize } from '../../../nls.js';
 import { MarshalledId } from '../../../base/common/marshallingIds.js';
-import { ICellRange } from '../../contrib/notebook/common/notebookRange.js';
 import { Schemas } from '../../../base/common/network.js';
 import { IViewsService } from '../../services/views/common/viewsService.js';
 import { MarshalledCommentThread } from '../../common/comments.js';
@@ -237,7 +236,7 @@ export class MainThreadCommentThread<T> implements languages.CommentThread<T> {
 
 class CommentThreadWithDisposable {
 	public readonly disposableStore: DisposableStore = new DisposableStore();
-	constructor(public readonly thread: MainThreadCommentThread<IRange | ICellRange>) { }
+	constructor(public readonly thread: MainThreadCommentThread<IRange>) { }
 	dispose() {
 		this.disposableStore.dispose();
 	}
@@ -279,7 +278,7 @@ export class MainThreadCommentController extends Disposable implements ICommentC
 	}
 
 	private readonly _threads: DisposableMap<number, CommentThreadWithDisposable> = this._register(new DisposableMap<number, CommentThreadWithDisposable>());
-	public activeEditingCommentThread?: MainThreadCommentThread<IRange | ICellRange>;
+	public activeEditingCommentThread?: MainThreadCommentThread<IRange>;
 
 	get features(): CommentProviderFeatures {
 		return this._features;
@@ -320,11 +319,11 @@ export class MainThreadCommentController extends Disposable implements ICommentC
 		commentThreadHandle: number,
 		threadId: string,
 		resource: UriComponents,
-		range: IRange | ICellRange | undefined,
+		range: IRange | undefined,
 		comments: languages.Comment[],
 		isTemplate: boolean,
 		editorId?: string
-	): languages.CommentThread<IRange | ICellRange> {
+	): languages.CommentThread<IRange> {
 		const thread = new MainThreadCommentThread(
 			commentThreadHandle,
 			this.handle,
@@ -354,7 +353,7 @@ export class MainThreadCommentController extends Disposable implements ICommentC
 			});
 		} else {
 			this._commentService.updateNotebookComments(this._uniqueId, {
-				added: [thread as MainThreadCommentThread<ICellRange>],
+				added: [thread as MainThreadCommentThread<IRange>],
 				removed: [],
 				changed: [],
 				pending: []
@@ -382,7 +381,7 @@ export class MainThreadCommentController extends Disposable implements ICommentC
 			this._commentService.updateNotebookComments(this._uniqueId, {
 				added: [],
 				removed: [],
-				changed: [thread as MainThreadCommentThread<ICellRange>],
+				changed: [thread as MainThreadCommentThread<IRange>],
 				pending: []
 			});
 		}
@@ -404,7 +403,7 @@ export class MainThreadCommentController extends Disposable implements ICommentC
 		} else {
 			this._commentService.updateNotebookComments(this._uniqueId, {
 				added: [],
-				removed: [thread as MainThreadCommentThread<ICellRange>],
+				removed: [thread as MainThreadCommentThread<IRange>],
 				changed: [],
 				pending: []
 			});
@@ -433,7 +432,7 @@ export class MainThreadCommentController extends Disposable implements ICommentC
 		this._commentService.updateCommentingRanges(this._uniqueId, resourceHints);
 	}
 
-	private getKnownThread(commentThreadHandle: number): MainThreadCommentThread<IRange | ICellRange> {
+	private getKnownThread(commentThreadHandle: number): MainThreadCommentThread<IRange> {
 		const thread = this._threads.get(commentThreadHandle);
 		if (!thread) {
 			throw new Error('unknown thread');
@@ -488,12 +487,12 @@ export class MainThreadCommentController extends Disposable implements ICommentC
 			};
 		}
 
-		const ret: languages.CommentThread<ICellRange>[] = [];
+		const ret: languages.CommentThread<IRange>[] = [];
 		for (const thread of [...this._threads.keys()]) {
 			const commentThread = this._threads.get(thread)!;
 			if (commentThread.thread.resource === resource.toString()) {
 				if (!commentThread.thread.isDocumentCommentThread()) {
-					ret.push(commentThread.thread as languages.CommentThread<ICellRange>);
+					ret.push(commentThread.thread as languages.CommentThread<IRange>);
 				}
 			}
 		}
@@ -509,8 +508,8 @@ export class MainThreadCommentController extends Disposable implements ICommentC
 		return this._proxy.$toggleReaction(this._handle, thread.commentThreadHandle, uri, comment, reaction);
 	}
 
-	getAllComments(): MainThreadCommentThread<IRange | ICellRange>[] {
-		const ret: MainThreadCommentThread<IRange | ICellRange>[] = [];
+	getAllComments(): MainThreadCommentThread<IRange>[] {
+		const ret: MainThreadCommentThread<IRange>[] = [];
 		for (const thread of [...this._threads.keys()]) {
 			ret.push(this._threads.get(thread)!.thread);
 		}
@@ -544,7 +543,7 @@ export class MainThreadComments extends Disposable implements MainThreadComments
 	private _handlers = new Map<number, string>();
 	private _commentControllers = new Map<number, MainThreadCommentController>();
 
-	private _activeEditingCommentThread?: MainThreadCommentThread<IRange | ICellRange>;
+	private _activeEditingCommentThread?: MainThreadCommentThread<IRange>;
 	private readonly _activeEditingCommentThreadDisposables = this._register(new DisposableStore());
 
 	private readonly _openViewListener: MutableDisposable<IDisposable> = this._register(new MutableDisposable());
@@ -565,7 +564,7 @@ export class MainThreadComments extends Disposable implements MainThreadComments
 		this._commentService.unregisterCommentController();
 
 		this._register(this._commentService.onDidChangeActiveEditingCommentThread(async thread => {
-			const handle = (thread as MainThreadCommentThread<IRange | ICellRange>).controllerHandle;
+			const handle = (thread as MainThreadCommentThread<IRange>).controllerHandle;
 			const controller = this._commentControllers.get(handle);
 
 			if (!controller) {
@@ -573,7 +572,7 @@ export class MainThreadComments extends Disposable implements MainThreadComments
 			}
 
 			this._activeEditingCommentThreadDisposables.clear();
-			this._activeEditingCommentThread = thread as MainThreadCommentThread<IRange | ICellRange>;
+			this._activeEditingCommentThread = thread as MainThreadCommentThread<IRange>;
 			controller.activeEditingCommentThread = this._activeEditingCommentThread;
 		}));
 
@@ -625,12 +624,12 @@ export class MainThreadComments extends Disposable implements MainThreadComments
 		commentThreadHandle: number,
 		threadId: string,
 		resource: UriComponents,
-		range: IRange | ICellRange | undefined,
+		range: IRange | undefined,
 		comments: languages.Comment[],
 		extensionId: ExtensionIdentifier,
 		isTemplate: boolean,
 		editorId?: string
-	): languages.CommentThread<IRange | ICellRange> | undefined {
+	): languages.CommentThread<IRange> | undefined {
 		const provider = this._commentControllers.get(handle);
 
 		if (!provider) {

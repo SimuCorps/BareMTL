@@ -16,7 +16,6 @@ import { IFileMatch, ISearchComplete, ITextQuery, ITextSearchQuery } from '../..
 import { RangeHighlightDecorations } from './rangeDecorations.js';
 import { FolderMatchNoRootImpl, FolderMatchWorkspaceRootImpl } from './folderMatch.js';
 import { IChangeEvent, ISearchTreeFileMatch, ISearchTreeFolderMatch, ISearchTreeFolderMatchWithResource, ISearchTreeFolderMatchWorkspaceRoot, IPlainTextSearchHeading, ISearchResult, isSearchTreeFileMatch, isSearchTreeFolderMatch, ITextSearchHeading, ISearchTreeMatch, TEXT_SEARCH_HEADING_PREFIX, PLAIN_TEXT_SEARCH__RESULT_ID, ISearchTreeFolderMatchNoRoot } from './searchTreeCommon.js';
-import { isNotebookFileMatch } from '../notebookSearch/notebookSearchModelBase.js';
 
 
 export abstract class TextSearchHeadingImpl<QueryType extends ITextSearchQuery> extends Disposable implements ITextSearchHeading {
@@ -65,7 +64,6 @@ export abstract class TextSearchHeadingImpl<QueryType extends ITextSearchQuery> 
 		return this._folderMatches.length > 0;
 	}
 
-	abstract get isAIContributed(): boolean;
 	abstract id(): string;
 	abstract name(): string;
 
@@ -91,18 +89,15 @@ export abstract class TextSearchHeadingImpl<QueryType extends ITextSearchQuery> 
 				return;
 			}
 
-			// ai results go into the respective folder
 			const folderMatch = this.getFolderMatch(raw[0].resource);
 			folderMatch?.addFileMatch(raw, silent, searchInstanceID);
 		});
 
-		if (!this.isAIContributed) {
-			this._otherFilesMatch?.addFileMatch(other, silent, searchInstanceID);
-		}
+		this._otherFilesMatch?.addFileMatch(other, silent, searchInstanceID);
 		this.disposePastResults();
 	}
 
-	remove(matches: ISearchTreeFileMatch | ISearchTreeFolderMatch | (ISearchTreeFileMatch | ISearchTreeFolderMatch)[], ai = false): void {
+	remove(matches: ISearchTreeFileMatch | ISearchTreeFolderMatch | (ISearchTreeFileMatch | ISearchTreeFolderMatch)[]): void {
 		if (!Array.isArray(matches)) {
 			matches = [matches];
 		}
@@ -219,9 +214,6 @@ export abstract class TextSearchHeadingImpl<QueryType extends ITextSearchQuery> 
 		let selectedMatch: ISearchTreeMatch | null = null;
 		this.matches().forEach((fileMatch: ISearchTreeFileMatch) => {
 			fileMatch.updateHighlights();
-			if (isNotebookFileMatch(fileMatch)) {
-				fileMatch.updateNotebookHighlights();
-			}
 			if (!selectedMatch) {
 				selectedMatch = fileMatch.getSelectedMatch();
 			}
@@ -277,10 +269,6 @@ export class PlainTextSearchHeadingImpl extends TextSearchHeadingImpl<ITextQuery
 
 	id(): string {
 		return TEXT_SEARCH_HEADING_PREFIX + PLAIN_TEXT_SEARCH__RESULT_ID;
-	}
-
-	get isAIContributed(): boolean {
-		return false;
 	}
 
 	replace(match: ISearchTreeFileMatch): Promise<any> {

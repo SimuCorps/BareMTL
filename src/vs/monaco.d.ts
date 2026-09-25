@@ -7807,8 +7807,6 @@ declare namespace monaco.languages {
 		typingIntervalCharacterCount: number;
 		selectedSuggestionInfo: boolean;
 		availableProviders: string;
-		skuPlan: string | undefined;
-		skuType: string | undefined;
 		renameCreated: boolean | undefined;
 		renameDuration: number | undefined;
 		renameTimedOut: boolean | undefined;

@@ -18,13 +18,11 @@ import { GitExtensionImpl } from './api/extension';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
-import { GitTimelineProvider } from './timelineProvider';
 import { registerAPICommands } from './api/api1';
 import { TerminalEnvironmentManager, TerminalShellExecutionManager } from './terminal';
 import { createIPCServer, IPCServer } from './ipc/ipcServer';
 import { GitEditor, GitEditorDocumentLinkProvider } from './gitEditor';
 import { GitPostCommitCommandsProvider } from './postCommitCommands';
-import { GitEditSessionIdentityProvider } from './editSessionIdentityProvider';
 import { GitCommitInputBoxCodeActionsProvider, GitCommitInputBoxDiagnosticsManager } from './diagnostics';
 import { GitBlameController } from './blame';
 import { CloneManager } from './cloneManager';
@@ -118,8 +116,6 @@ async function createModel(context: ExtensionContext, logger: LogOutputChannel, 
 		new GitFileSystemProvider(model, logger),
 		new GitDecorations(model),
 		new GitBlameController(model),
-		new GitTimelineProvider(model, cc),
-		new GitEditSessionIdentityProvider(model),
 		new TerminalShellExecutionManager(model, logger)
 	);
 

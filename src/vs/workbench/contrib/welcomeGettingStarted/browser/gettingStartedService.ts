@@ -11,7 +11,6 @@ import { Action2, registerAction2 } from '../../../../platform/actions/common/ac
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { ContextKeyExpr, ContextKeyExpression, IContextKeyService, RawContextKey } from '../../../../platform/contextkey/common/contextkey.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
-import { IUserDataSyncEnablementService } from '../../../../platform/userDataSync/common/userDataSync.js';
 import { IExtensionDescription } from '../../../../platform/extensions/common/extensions.js';
 import { URI } from '../../../../base/common/uri.js';
 import { joinPath } from '../../../../base/common/resources.js';
@@ -19,7 +18,6 @@ import { FileAccess } from '../../../../base/common/network.js';
 import { EXTENSION_INSTALL_DEP_PACK_CONTEXT, EXTENSION_INSTALL_SKIP_WALKTHROUGH_CONTEXT, IExtensionManagementService } from '../../../../platform/extensionManagement/common/extensionManagement.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { walkthroughs } from '../common/gettingStartedContent.js';
-import { IWorkbenchAssignmentService } from '../../../services/assignment/common/assignmentService.js';
 import { IHostService } from '../../../services/host/browser/host.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { ILink, LinkedText, parseLinkedText } from '../../../../base/common/linkedText.js';
@@ -153,13 +151,11 @@ export class WalkthroughsService extends Disposable implements IWalkthroughsServ
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
 		@IWorkspaceContextService private readonly workspaceContextService: IWorkspaceContextService,
 		@IContextKeyService private readonly contextService: IContextKeyService,
-		@IUserDataSyncEnablementService private readonly userDataSyncEnablementService: IUserDataSyncEnablementService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@IExtensionManagementService private readonly extensionManagementService: IExtensionManagementService,
 		@IHostService private readonly hostService: IHostService,
 		@IViewsService private readonly viewsService: IViewsService,
 		@ITelemetryService private readonly telemetryService: ITelemetryService,
-		@IWorkbenchAssignmentService private readonly tasExperimentService: IWorkbenchAssignmentService,
 		@IWorkbenchLayoutService private readonly layoutService: IWorkbenchLayoutService,
 		@IEditorService private readonly editorService: IEditorService
 	) {
@@ -272,11 +268,6 @@ export class WalkthroughsService extends Disposable implements IWalkthroughsServ
 		this._register(this.configurationService.onDidChangeConfiguration(e => {
 			e.affectedKeys.forEach(key => { this.progressByEvent('onSettingChanged:' + key); });
 		}));
-
-		if (this.userDataSyncEnablementService.isEnabled()) { this.progressByEvent('onEvent:sync-enabled'); }
-		this._register(this.userDataSyncEnablementService.onDidChangeEnablement(() => {
-			if (this.userDataSyncEnablementService.isEnabled()) { this.progressByEvent('onEvent:sync-enabled'); }
-		}));
 	}
 
 	markWalkthroughOpened(id: string) {
@@ -326,13 +317,8 @@ export class WalkthroughsService extends Disposable implements IWalkthroughsServ
 				this.metadata.set(categoryID, { firstSeen: +new Date(), stepIDs: walkthrough.steps?.map(s => s.id) ?? [], manaullyOpened: false });
 			}
 
-			const override = await Promise.race([
-				this.tasExperimentService?.getTreatment<string>(`gettingStarted.overrideCategory.${extension.identifier.value + '.' + walkthrough.id}.when`),
-				new Promise<string | undefined>(resolve => setTimeout(() => resolve(walkthrough.when), 5000))
-			]);
-
 			if (this.sessionInstalledExtensions.has(extension.identifier.value.toLowerCase())
-				&& this.contextService.contextMatchesRules(ContextKeyExpr.deserialize(override ?? walkthrough.when) ?? ContextKeyExpr.true())
+				&& this.contextService.contextMatchesRules(ContextKeyExpr.deserialize(walkthrough.when) ?? ContextKeyExpr.true())
 			) {
 				this.sessionInstalledExtensions.delete(extension.identifier.value.toLowerCase());
 				if (index < sectionToOpenIndex && isNewlyInstalled) {
@@ -426,7 +412,7 @@ export class WalkthroughsService extends Disposable implements IWalkthroughsServ
 					icon: extensionDefaultIcon,
 					type: 'icon'
 				},
-				when: ContextKeyExpr.deserialize(override ?? walkthrough.when) ?? ContextKeyExpr.true(),
+				when: ContextKeyExpr.deserialize(walkthrough.when) ?? ContextKeyExpr.true(),
 			} as const;
 
 			this._registerWalkthrough(walkthoughDescriptor);
@@ -437,8 +423,7 @@ export class WalkthroughsService extends Disposable implements IWalkthroughsServ
 		this.storageService.store(walkthroughMetadataConfigurationKey, JSON.stringify([...this.metadata.entries()]), StorageScope.PROFILE, StorageTarget.USER);
 
 		const hadLastFoucs = await this.hostService.hadLastFocus();
-		const startupEditor = this.configurationService.getValue<string>('workbench.startupEditor');
-		if (hadLastFoucs && sectionToOpen && this.configurationService.getValue<string>('workbench.welcomePage.walkthroughs.openOnInstall') && startupEditor !== 'agentSessionsWelcomePage') {
+		if (hadLastFoucs && sectionToOpen && this.configurationService.getValue<string>('workbench.welcomePage.walkthroughs.openOnInstall')) {
 			type GettingStartedAutoOpenClassification = {
 				owner: 'lramos15';
 				comment: 'When a walkthrough is opened upon extension installation';

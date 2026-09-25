@@ -48,7 +48,6 @@ suite('Win32UpdateService - relaunch arguments', () => {
 			_: ['C:\\some\\file.txt'],
 			wait: true,
 			'new-window': true,
-			'install-extension': ['some.extension'],
 			'profile': 'work',
 			'profile-temp': true,
 			'crash-reporter-id': 'derived-id',

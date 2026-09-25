@@ -7,7 +7,6 @@ import { RunOnceScheduler } from '../../../../base/common/async.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { IJSONSchema, IJSONSchemaMap } from '../../../../base/common/jsonSchema.js';
 import { Disposable, IDisposable } from '../../../../base/common/lifecycle.js';
-import Severity from '../../../../base/common/severity.js';
 import * as strings from '../../../../base/common/strings.js';
 import { isCodeEditor } from '../../../../editor/browser/editorBrowser.js';
 import { IEditorModel } from '../../../../editor/common/editorCommon.js';
@@ -15,7 +14,6 @@ import { ILanguageService } from '../../../../editor/common/languages/language.j
 import { ITextModel } from '../../../../editor/common/model.js';
 import * as nls from '../../../../nls.js';
 import { IMenuService, MenuId, MenuItemAction } from '../../../../platform/actions/common/actions.js';
-import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IContextKey, IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
@@ -66,7 +64,6 @@ export class AdapterManager extends Disposable implements IAdapterManager {
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@IQuickInputService private readonly quickInputService: IQuickInputService,
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
-		@ICommandService private readonly commandService: ICommandService,
 		@IExtensionService private readonly extensionService: IExtensionService,
 		@IContextKeyService private readonly contextKeyService: IContextKeyService,
 		@ILanguageService private readonly languageService: ILanguageService,
@@ -175,7 +172,7 @@ export class AdapterManager extends Disposable implements IAdapterManager {
 					},
 					'debugServer': {
 						type: 'number',
-						description: nls.localize('debugServer', "For debug extension development only: if a port is specified VS Code tries to connect to a debug adapter running in server mode"),
+						description: nls.localize('debugServer', "For debug extension development only: if a port is specified BareMTL tries to connect to a debug adapter running in server mode"),
 						default: 4711
 					},
 					'preLaunchTask': {
@@ -377,14 +374,7 @@ export class AdapterManager extends Disposable implements IAdapterManager {
 			if (languageLabel.indexOf(' ') >= 0) {
 				languageLabel = `'${languageLabel}'`;
 			}
-			const { confirmed } = await this.dialogService.confirm({
-				type: Severity.Warning,
-				message: nls.localize('CouldNotFindLanguage', "You don't have an extension for debugging {0}. Should we find a {0} extension in the Marketplace?", languageLabel),
-				primaryButton: nls.localize({ key: 'findExtension', comment: ['&& denotes a mnemonic'] }, "&&Find {0} extension", languageLabel)
-			});
-			if (confirmed) {
-				await this.commandService.executeCommand('debug.installAdditionalDebuggers', languageLabel);
-			}
+			await this.dialogService.warn(nls.localize('CouldNotFindLanguage', "No debugger is available for {0}.", languageLabel));
 			return undefined;
 		}
 
@@ -441,11 +431,6 @@ export class AdapterManager extends Disposable implements IAdapterManager {
 			}
 		}
 
-		picks.push(
-			{ type: 'separator', label: '' },
-			{ label: languageLabel ? nls.localize('installLanguage', "Install an extension for {0}...", languageLabel) : nls.localize('installExt', "Install extension...") }
-		);
-
 		const contributed = this.menuService.getMenuActions(MenuId.DebugCreateConfiguration, this.contextKeyService);
 		for (const [, action] of contributed) {
 			for (const item of action) {
@@ -462,10 +447,6 @@ export class AdapterManager extends Disposable implements IAdapterManager {
 			if (picked instanceof MenuItemAction) {
 				picked.run();
 				return;
-			}
-
-			if (picked) {
-				this.commandService.executeCommand('debug.installAdditionalDebuggers', languageLabel);
 			}
 
 			return undefined;

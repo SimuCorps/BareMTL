@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as platform from '../../../../base/common/platform.js';
-import { IExtensionDescription, IExtension } from '../../../../platform/extensions/common/extensions.js';
+import { IExtensionDescription } from '../../../../platform/extensions/common/extensions.js';
 import { dedupExtensions } from '../common/extensionsUtil.js';
 import { IExtensionsScannerService, IScannedExtension, toExtensionDescription as toExtensionDescriptionFromScannedExtension } from '../../../../platform/extensionManagement/common/extensionsScannerService.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
@@ -13,11 +13,7 @@ import { localize } from '../../../../nls.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { IHostService } from '../../host/browser/host.js';
 import { timeout } from '../../../../base/common/async.js';
-import { IUserDataProfileService } from '../../userDataProfile/common/userDataProfile.js';
 import { getErrorMessage } from '../../../../base/common/errors.js';
-import { IWorkbenchExtensionManagementService } from '../../extensionManagement/common/extensionManagement.js';
-import { toExtensionDescription } from '../common/extensions.js';
-import { IWorkbenchEnvironmentService } from '../../environment/common/environmentService.js';
 
 export class CachedExtensionScanner {
 
@@ -29,9 +25,6 @@ export class CachedExtensionScanner {
 		@INotificationService private readonly _notificationService: INotificationService,
 		@IHostService private readonly _hostService: IHostService,
 		@IExtensionsScannerService private readonly _extensionsScannerService: IExtensionsScannerService,
-		@IUserDataProfileService private readonly _userDataProfileService: IUserDataProfileService,
-		@IWorkbenchExtensionManagementService private readonly _extensionManagementService: IWorkbenchExtensionManagementService,
-		@IWorkbenchEnvironmentService private readonly _environmentService: IWorkbenchEnvironmentService,
 		@ILogService private readonly _logService: ILogService,
 	) {
 		this.scannedExtensions = new Promise<IExtensionDescription[]>((resolve, reject) => {
@@ -52,41 +45,20 @@ export class CachedExtensionScanner {
 	private async _scanInstalledExtensions(): Promise<IExtensionDescription[]> {
 		try {
 			const language = platform.language;
-			const result = await Promise.allSettled([
-				this._extensionsScannerService.scanSystemExtensions({ language, checkControlFile: true }),
-				this._extensionsScannerService.scanUserExtensions({ language, profileLocation: this._userDataProfileService.currentProfile.extensionsResource, useCache: true }),
-				this._environmentService.remoteAuthority ? [] : this._extensionManagementService.getInstalledWorkspaceExtensions(false)
-			]);
-
+			// BareMTL runs bundled (system) extensions only; user and workspace extensions are never loaded.
 			let hasErrors = false;
 
 			let scannedSystemExtensions: IScannedExtension[] = [];
-			if (result[0].status === 'fulfilled') {
-				scannedSystemExtensions = result[0].value;
-			} else {
+			try {
+				scannedSystemExtensions = await this._extensionsScannerService.scanSystemExtensions({ language, checkControlFile: true });
+			} catch (error) {
 				hasErrors = true;
-				this._logService.error(`Error scanning system extensions:`, getErrorMessage(result[0].reason));
-			}
-
-			let scannedUserExtensions: IScannedExtension[] = [];
-			if (result[1].status === 'fulfilled') {
-				scannedUserExtensions = result[1].value;
-			} else {
-				hasErrors = true;
-				this._logService.error(`Error scanning user extensions:`, getErrorMessage(result[1].reason));
-			}
-
-			let workspaceExtensions: IExtension[] = [];
-			if (result[2].status === 'fulfilled') {
-				workspaceExtensions = result[2].value;
-			} else {
-				hasErrors = true;
-				this._logService.error(`Error scanning workspace extensions:`, getErrorMessage(result[2].reason));
+				this._logService.error(`Error scanning system extensions:`, getErrorMessage(error));
 			}
 
 			const scannedDevelopedExtensions: IScannedExtension[] = [];
 			try {
-				const allScannedDevelopedExtensions = await this._extensionsScannerService.scanExtensionsUnderDevelopment([...scannedSystemExtensions, ...scannedUserExtensions], { language, includeInvalid: true });
+				const allScannedDevelopedExtensions = await this._extensionsScannerService.scanExtensionsUnderDevelopment(scannedSystemExtensions, { language, includeInvalid: true });
 				const invalidExtensions: IScannedExtension[] = [];
 				for (const extensionUnderDevelopment of allScannedDevelopedExtensions) {
 					if (extensionUnderDevelopment.isValid) {
@@ -109,10 +81,8 @@ export class CachedExtensionScanner {
 			}
 
 			const system = scannedSystemExtensions.map(e => toExtensionDescriptionFromScannedExtension(e, false));
-			const user = scannedUserExtensions.map(e => toExtensionDescriptionFromScannedExtension(e, false));
-			const workspace = workspaceExtensions.map(e => toExtensionDescription(e, false));
 			const development = scannedDevelopedExtensions.map(e => toExtensionDescriptionFromScannedExtension(e, true));
-			const r = dedupExtensions(system, user, workspace, development, this._logService);
+			const r = dedupExtensions(system, [], [], development, this._logService);
 
 			if (!hasErrors) {
 				const disposable = this._extensionsScannerService.onDidChangeCache(() => {

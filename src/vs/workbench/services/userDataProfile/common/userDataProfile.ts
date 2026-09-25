@@ -13,8 +13,6 @@ import { URI } from '../../../../base/common/uri.js';
 import { registerIcon } from '../../../../platform/theme/common/iconRegistry.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { ITreeItem, ITreeItemLabel } from '../../../common/views.js';
-import { CancellationToken } from '../../../../base/common/cancellation.js';
-import { IDisposable } from '../../../../base/common/lifecycle.js';
 import { IProductService } from '../../../../platform/product/common/productService.js';
 
 export interface DidChangeUserDataProfileEvent {
@@ -97,20 +95,6 @@ export interface IProfileImportOptions extends IUserDataProfileCreateOptions {
 	readonly mode?: 'apply';
 }
 
-export const IUserDataProfileImportExportService = createDecorator<IUserDataProfileImportExportService>('IUserDataProfileImportExportService');
-export interface IUserDataProfileImportExportService {
-	readonly _serviceBrand: undefined;
-
-	registerProfileContentHandler(id: string, profileContentHandler: IUserDataProfileContentHandler): IDisposable;
-	unregisterProfileContentHandler(id: string): void;
-
-	resolveProfileTemplate(uri: URI): Promise<IUserDataProfileTemplate | null>;
-	exportProfile(profile: IUserDataProfile, exportFlags?: ProfileResourceTypeFlags): Promise<void>;
-	createFromProfile(from: IUserDataProfile, options: IUserDataProfileCreateOptions, token: CancellationToken): Promise<IUserDataProfile | undefined>;
-	createProfileFromTemplate(profileTemplate: IUserDataProfileTemplate, options: IUserDataProfileCreateOptions, token: CancellationToken): Promise<IUserDataProfile | undefined>;
-	createTroubleshootProfile(): Promise<void>;
-}
-
 export interface IProfileResourceInitializer {
 	initialize(content: string): Promise<void>;
 }
@@ -130,19 +114,6 @@ export interface IProfileResourceTreeItem extends ITreeItem {
 
 export interface IProfileResourceChildTreeItem extends ITreeItem {
 	parent: IProfileResourceTreeItem;
-}
-
-export interface ISaveProfileResult {
-	readonly id: string;
-	readonly link: URI;
-}
-
-export interface IUserDataProfileContentHandler {
-	readonly name: string;
-	readonly description?: string;
-	readonly extensionId?: string;
-	saveProfile(name: string, content: string, token: CancellationToken): Promise<ISaveProfileResult | null>;
-	readProfile(idOrUri: string | URI, token: CancellationToken): Promise<string | null>;
 }
 
 export const defaultUserDataProfileIcon = registerIcon('defaultProfile-icon', Codicon.settings, localize('defaultProfileIcon', 'Icon for Default Profile.'));

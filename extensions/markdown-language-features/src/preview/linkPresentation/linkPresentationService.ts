@@ -12,11 +12,6 @@ import { ImmutableLinkPresentationCache, type LinkPresentation, type LinkPresent
 import { WorkspaceLinkPresentationResolver } from './workspaceLinkPresentationResolver';
 
 const refreshIntervalMs = 30_000;
-export const linkPresentationProviderIds = [
-	'markdown.gitCommitLinkPresentations',
-	'markdown.workspaceFileLinkPresentations',
-] as const;
-
 export interface LinkPresentationWatch extends vscode.Disposable {
 	readonly presentation: IObservable<LinkPresentation>;
 }
@@ -145,60 +140,6 @@ export function createSharedLinkPresentationService(logger: ILogger): LinkPresen
 		new GitLinkPresentationResolver(new ImmutableLinkPresentationCache()),
 		new WorkspaceLinkPresentationResolver(),
 	], logger);
-}
-
-export function registerLinkPresentationProvider(service: LinkPresentationService): vscode.Disposable {
-	const provider: vscode.LinkPresentationProvider = {
-		provideLinkPresentationWatcher: resource => {
-			const href = resource.toString(true);
-			const watch = service.watch(href);
-			if (!watch) {
-				throw new Error(`No link presentation resolver accepted ${href}.`);
-			}
-			return new ExtensionLinkPresentationWatcher(watch);
-		},
-	};
-	return vscode.Disposable.from(...linkPresentationProviderIds.map(id => vscode.window.registerLinkPresentationProvider(id, provider)));
-}
-
-class ExtensionLinkPresentationWatcher extends Disposable implements vscode.LinkPresentationWatcher {
-	readonly #onDidChangePresentation = this._register(new vscode.EventEmitter<void>());
-	readonly onDidChangePresentation = this.#onDidChangePresentation.event;
-	#source: LinkPresentation;
-	#presentation: vscode.LinkPresentationData;
-
-	get presentation(): vscode.LinkPresentationData {
-		return this.#presentation;
-	}
-
-	constructor(watch: LinkPresentationWatch) {
-		super();
-		this._register(watch);
-		this.#source = watch.presentation.get();
-		this.#presentation = toApiPresentation(this.#source);
-		this._register(autorun(reader => {
-			const presentation = watch.presentation.read(reader);
-			if (presentation !== this.#source) {
-				this.#source = presentation;
-				this.#presentation = toApiPresentation(presentation);
-				this.#onDidChangePresentation.fire();
-			}
-		}));
-	}
-}
-
-function toApiPresentation(presentation: LinkPresentation): vscode.LinkPresentationData {
-	return {
-		kind: presentation.kind,
-		...(presentation.title ? { title: presentation.title } : {}),
-		...(presentation.detail ? { detail: presentation.detail } : {}),
-		...(presentation.reference ? { reference: presentation.reference } : {}),
-		...(presentation.status ? { status: presentation.status } : {}),
-		...(presentation.secondaryStatus ? { secondaryStatus: presentation.secondaryStatus } : {}),
-		...(presentation.tooltip ? { tooltip: presentation.tooltip } : {}),
-		...(presentation.ariaLabel ? { ariaLabel: presentation.ariaLabel } : {}),
-		...(presentation.isLoading ? { isLoading: true } : {}),
-	};
 }
 
 export function canonicalizeLinkHref(href: string): string {
