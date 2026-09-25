@@ -1,10 +1,9 @@
 name: @@NAME@@
 version: '@@VERSION@@'
-summary: Code editing. Redefined.
+summary: Bare-metal code editing. Nothing extra.
 description: |
-  Visual Studio Code is a new choice of tool that combines the
-  simplicity of a code editor with what developers need for the core
-  edit-build-debug cycle.
+  BareMTL is a minimal, lightweight code editor built from Code - OSS,
+  with AI features, telemetry and other extras removed.
 
 architectures:
   - build-on: amd64

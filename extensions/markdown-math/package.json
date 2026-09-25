@@ -68,16 +68,6 @@
         }
       }
     ],
-    "notebookRenderer": [
-      {
-        "id": "vscode.markdown-it-katex-extension",
-        "displayName": "Markdown it KaTeX renderer",
-        "entrypoint": {
-          "extends": "vscode.markdown-it-renderer",
-          "path": "./notebook-out/katex.js"
-        }
-      }
-    ],
     "markdown.markdownItPlugins": true,
     "markdown.previewStyles": [
       "./notebook-out/katex.min.css",

@@ -13,11 +13,9 @@ import './browser/workbench.zenMode.contribution.js';
 
 // Agent-sessions color tokens — side-effect import so they register in the
 // global color registry and appear in the color-theme JSON schema.
-import '../sessions/common/theme.js';
 
 // Agent-sessions size tokens (font ramp) — side-effect import so they register
 // in the global size registry and appear in the workbench-sizes JSON schema.
-import '../sessions/common/sizes.js';
 
 //#endregion
 
@@ -65,8 +63,6 @@ import './browser/parts/titlebar/menubar.contribution.js';
 
 import '../platform/actions/common/actions.contribution.js';
 import '../platform/undoRedo/common/undoRedoService.js';
-import '../platform/mcp/common/mcpResourceScannerService.js';
-import './services/workspaces/common/editSessionIdentityService.js';
 import './services/workspaces/common/canonicalUriService.js';
 import './services/extensions/browser/extensionUrlHandler.js';
 import './services/keybinding/common/keybindingEditing.js';
@@ -79,9 +75,6 @@ import './services/configuration/common/jsonEditingService.js';
 import './services/textmodelResolver/common/textModelResolverService.js';
 import './services/editor/browser/editorService.js';
 import './services/editor/browser/editorResolverService.js';
-import './services/aiEmbeddingVector/common/aiEmbeddingVectorService.js';
-import './services/aiRelatedInformation/common/aiRelatedInformationService.js';
-import './services/aiSettingsSearch/common/aiSettingsSearchService.js';
 import './services/history/browser/historyService.js';
 import './services/activity/browser/activityService.js';
 import './services/keybinding/browser/keybindingService.js';
@@ -90,7 +83,6 @@ import './services/textresourceProperties/common/textResourcePropertiesService.j
 import './services/textfile/common/textEditorService.js';
 import './services/language/common/languageService.js';
 import './services/model/common/modelService.js';
-import './services/notebook/common/notebookDocumentService.js';
 import './services/commands/common/commandService.js';
 import './services/themes/browser/workbenchThemeService.js';
 import './services/label/common/labelService.js';
@@ -102,9 +94,6 @@ import './services/extensionRecommendations/common/extensionIgnoredRecommendatio
 import './services/extensionRecommendations/common/workspaceExtensionsConfig.js';
 import './services/extensionManagement/common/extensionFeaturesManagemetService.js';
 import './services/notification/common/notificationService.js';
-import './services/userDataSync/common/userDataSyncUtil.js';
-import './services/userDataProfile/browser/userDataProfileImportExportService.js';
-import './services/userDataProfile/browser/userDataProfileManagement.js';
 import './services/userDataProfile/common/remoteUserDataProfiles.js';
 import './services/remote/common/remoteExplorerService.js';
 import './services/remote/common/remoteExtensionsScanner.js';
@@ -116,19 +105,14 @@ import './services/filesConfiguration/common/filesConfigurationService.js';
 import './services/views/browser/viewDescriptorService.js';
 import './services/views/browser/viewsService.js';
 import './services/quickinput/browser/quickInputService.js';
-import './services/userDataSync/browser/userDataSyncWorkbenchService.js';
 import './services/authentication/browser/authenticationService.js';
 import './services/authentication/browser/authenticationExtensionsService.js';
 import './services/authentication/browser/authenticationUsageService.js';
 import './services/authentication/browser/authenticationAccessService.js';
-import './services/authentication/browser/authenticationMcpUsageService.js';
-import './services/authentication/browser/authenticationMcpAccessService.js';
-import './services/authentication/browser/authenticationMcpService.js';
 import './services/authentication/browser/dynamicAuthenticationProviderStorageService.js';
 import './services/authentication/browser/authenticationQueryService.js';
 import '../platform/hover/browser/hoverService.js';
 import '../platform/userInteraction/browser/userInteractionServiceImpl.js';
-import './services/assignment/common/assignmentService.js';
 import './services/outline/browser/outlineService.js';
 import './services/languageDetection/browser/languageDetectionWorkerServiceImpl.js';
 import '../editor/common/services/languageFeaturesService.js';
@@ -142,11 +126,6 @@ import './services/userAttention/browser/userAttentionBrowser.js';
 import './services/editor/browser/editorPaneService.js';
 import './services/editor/common/customEditorLabelService.js';
 import './services/dataChannel/browser/dataChannelService.js';
-import './services/github/browser/githubService.js';
-import './services/inlineCompletions/common/inlineCompletionsUnification.js';
-import './services/chat/common/chatEntitlementService.js';
-import './services/agentHost/common/agentHostResourceService.js';
-import '../platform/agentHost/browser/agentHostConnectionsService.js';
 import './services/log/common/defaultLogLevels.js';
 
 import { InstantiationType, registerSingleton } from '../platform/instantiation/common/extensions.js';
@@ -167,20 +146,12 @@ import { IDownloadService } from '../platform/download/common/download.js';
 import { DownloadService } from '../platform/download/common/downloadService.js';
 import { OpenerService } from '../editor/browser/services/openerService.js';
 import { IOpenerService } from '../platform/opener/common/opener.js';
-import { IgnoredExtensionsManagementService, IIgnoredExtensionsManagementService } from '../platform/userDataSync/common/ignoredExtensions.js';
 import { ExtensionStorageService, IExtensionStorageService } from '../platform/extensionManagement/common/extensionStorage.js';
-import { IUserDataSyncLogService } from '../platform/userDataSync/common/userDataSync.js';
-import { UserDataSyncLogService } from '../platform/userDataSync/common/userDataSyncLog.js';
 import { AllowedExtensionsService } from '../platform/extensionManagement/common/allowedExtensionsService.js';
-import { IAllowedMcpServersService, IMcpGalleryService } from '../platform/mcp/common/mcpManagement.js';
-import { McpGalleryService } from '../platform/mcp/common/mcpGalleryService.js';
-import { AllowedMcpServersService } from '../platform/mcp/common/allowedMcpServersService.js';
 import { IWebWorkerService } from '../platform/webWorker/browser/webWorkerService.js';
 import { WebWorkerService } from '../platform/webWorker/browser/webWorkerServiceImpl.js';
 
-registerSingleton(IUserDataSyncLogService, UserDataSyncLogService, InstantiationType.Delayed);
 registerSingleton(IAllowedExtensionsService, AllowedExtensionsService, InstantiationType.Delayed);
-registerSingleton(IIgnoredExtensionsManagementService, IgnoredExtensionsManagementService, InstantiationType.Delayed);
 registerSingleton(IGlobalExtensionEnablementService, GlobalExtensionEnablementService, InstantiationType.Delayed);
 registerSingleton(IExtensionStorageService, ExtensionStorageService, InstantiationType.Delayed);
 registerSingleton(IContextViewService, ContextViewService, InstantiationType.Delayed);
@@ -192,8 +163,6 @@ registerSingleton(ITextResourceConfigurationService, TextResourceConfigurationSe
 registerSingleton(IDownloadService, DownloadService, InstantiationType.Delayed);
 registerSingleton(IOpenerService, OpenerService, InstantiationType.Delayed);
 registerSingleton(IWebWorkerService, WebWorkerService, InstantiationType.Delayed);
-registerSingleton(IMcpGalleryService, McpGalleryService, InstantiationType.Delayed);
-registerSingleton(IAllowedMcpServersService, AllowedMcpServersService, InstantiationType.Delayed);
 
 //#endregion
 
@@ -201,17 +170,12 @@ registerSingleton(IAllowedMcpServersService, AllowedMcpServersService, Instantia
 //#region --- workbench contributions
 
 // Default Account
-import './services/accounts/browser/defaultAccount.js';
 
 // Account Policy Gate
-import './services/policies/browser/accountPolicyGate.contribution.js';
-import './services/policies/browser/managedSettingsUpdate.contribution.js';
 
 // Policy Telemetry
-import './services/policies/browser/policyTelemetry.contribution.js';
 
 // Telemetry
-import './contrib/telemetry/browser/telemetry.contribution.js';
 
 // Preferences
 import './contrib/preferences/browser/preferences.contribution.js';
@@ -221,36 +185,15 @@ import './contrib/preferences/browser/preferencesSearch.js';
 // Performance
 import './contrib/performance/browser/performance.contribution.js';
 
-// Notebook
-import './contrib/notebook/browser/notebook.contribution.js';
 
 // Speech
-import './contrib/speech/browser/speech.contribution.js';
 
-// Chat
-import './contrib/chat/browser/chat.shared.contribution.js';
-import './contrib/chat/browser/chat.contribution.js';
-import './contrib/chat/browser/agentSessions/agentHost/agentHost.contribution.js';
-import './contrib/chat/browser/remoteAgentHost/remoteAgentHost.contribution.js';
-import './contrib/chat/browser/chat.view.contribution.js';
-import './contrib/inlineChat/browser/inlineChat.contribution.js';
-
-// Copilot Voice
-import './contrib/agentsVoice/browser/agentsVoice.contribution.js';
-import './contrib/mcp/browser/mcp.contribution.js';
-import './contrib/mcp/browser/mcp.view.contribution.js';
-import './contrib/chat/browser/chatSessions/chatSessions.contribution.js';
-import './contrib/chat/browser/contextContrib/chatContext.contribution.js';
-import './contrib/imageCarousel/browser/imageCarousel.contribution.js';
 
 // Interactive
-import './contrib/interactive/browser/interactive.contribution.js';
 
 // repl
-import './contrib/replNotebook/browser/repl.contribution.js';
 
 // Testing
-import './contrib/testing/browser/testing.contribution.js';
 
 // Logs
 import './contrib/logs/common/logs.contribution.js';
@@ -281,8 +224,6 @@ import './contrib/searchEditor/browser/searchEditor.contribution.js';
 import './contrib/sash/browser/sash.contribution.js';
 
 // Git
-import './contrib/git/browser/git.contributions.js';
-import './contrib/github/browser/githubLinkPresentation.contribution.js';
 
 // SCM
 import './contrib/scm/browser/scm.contribution.js';
@@ -328,8 +269,6 @@ import './contrib/customEditor/browser/customEditor.contribution.js';
 import './contrib/externalUriOpener/common/externalUriOpener.contribution.js';
 
 // Extensions Management
-import './contrib/extensions/browser/extensions.contribution.js';
-import './contrib/extensions/browser/extensionsViewlet.js';
 
 // Output View
 import './contrib/output/browser/output.contribution.js';
@@ -351,8 +290,6 @@ import './contrib/modernUI/browser/modernUI.contribution.js';
 import './contrib/tasks/browser/task.contribution.js';
 
 // Remote
-import './contrib/remote/common/remote.contribution.js';
-import './contrib/remote/browser/remote.contribution.js';
 
 // Emmet
 import './contrib/emmet/browser/emmet.contribution.js';
@@ -376,7 +313,6 @@ import './contrib/format/browser/format.contribution.js';
 import './contrib/folding/browser/folding.contribution.js';
 
 // Limit Indicator
-import './contrib/limitIndicator/browser/limitIndicator.contribution.js';
 
 // Inlay Hint Accessibility
 import './contrib/inlayHints/browser/inlayHintsAccessibilty.js';
@@ -385,26 +321,18 @@ import './contrib/inlayHints/browser/inlayHintsAccessibilty.js';
 import './contrib/themes/browser/themes.contribution.js';
 
 // Update
-import './contrib/update/browser/update.contribution.js';
 
 // Surveys
-import './contrib/surveys/browser/nps.contribution.js';
-import './contrib/surveys/browser/languageSurveys.contribution.js';
 
 // Welcome
 import './contrib/welcomeGettingStarted/browser/gettingStarted.contribution.js';
-import './contrib/welcomeAgentSessions/browser/agentSessionsWelcome.contribution.js';
 import './contrib/welcomeWalkthrough/browser/walkThrough.contribution.js';
 import './contrib/welcomeViews/common/viewsWelcome.contribution.js';
 import './contrib/welcomeViews/common/newFile.contribution.js';
 
 // Welcome Onboarding
-import './contrib/welcomeOnboarding/browser/welcomeOnboarding.contribution.js';
 
 // Onboarding (scenario engine)
-import './contrib/onboarding/browser/onboarding.contribution.js';
-import './contrib/chat/browser/onboarding/modelPickerTryout.contribution.js';
-import './contrib/codeEditor/browser/diffEditorTryout.contribution.js';
 
 // Call Hierarchy
 import './contrib/callHierarchy/browser/callHierarchy.contribution.js';
@@ -426,23 +354,15 @@ import './contrib/languageStatus/browser/languageStatus.contribution.js';
 import './contrib/authentication/browser/authentication.contribution.js';
 
 // User Data Sync
-import './contrib/userDataSync/browser/userDataSync.contribution.js';
 
 // User Data Profiles
-import './contrib/userDataProfile/browser/userDataProfile.contribution.js';
 
 // Continue Edit Session
-import './contrib/editSessions/browser/editSessions.contribution.js';
-
-// Remote Coding Agents
-import './contrib/remoteCodingAgents/browser/remoteCodingAgents.contribution.js';
 
 // Code Actions
 import './contrib/codeActions/browser/codeActions.contribution.js';
 
 // Timeline
-import './contrib/timeline/browser/timeline.contribution.js';
-import './contrib/timeline/browser/timeline.service.contribution.js';
 
 // Local History
 import './contrib/localHistory/browser/localHistory.contribution.js';
@@ -460,16 +380,13 @@ import './contrib/list/browser/list.contribution.js';
 import './contrib/accessibilitySignals/browser/accessibilitySignal.contribution.js';
 
 // Bracket Pair Colorizer 2 Telemetry
-import './contrib/bracketPairColorizer2Telemetry/browser/bracketPairColorizer2Telemetry.contribution.js';
 
 // Accessibility
 import './contrib/accessibility/browser/accessibility.contribution.js';
 
 // Metered Connection
-import './contrib/meteredConnection/browser/meteredConnection.contribution.js';
 
 // Share
-import './contrib/share/browser/share.contribution.js';
 
 // Synchronized Scrolling
 import './contrib/scrollLocking/browser/scrollLocking.contribution.js';
@@ -481,7 +398,6 @@ import './contrib/inlineCompletions/browser/inlineCompletions.contribution.js';
 import './contrib/dropOrPasteInto/browser/dropOrPasteInto.contribution.js';
 
 // Edit Telemetry
-import './contrib/editTelemetry/browser/editTelemetry.contribution.js';
 
 // Opener
 import './contrib/opener/browser/opener.contribution.js';

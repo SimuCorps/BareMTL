@@ -11,9 +11,7 @@ import { toErrorMessage } from '../../base/common/errorMessage.js';
 import { isSigPipeError, onUnexpectedError, setUnexpectedErrorHandler } from '../../base/common/errors.js';
 import { Disposable } from '../../base/common/lifecycle.js';
 import { Schemas } from '../../base/common/network.js';
-import { isAbsolute, join } from '../../base/common/path.js';
 import { isWindows, isMacintosh, isLinux } from '../../base/common/platform.js';
-import { cwd } from '../../base/common/process.js';
 import { URI } from '../../base/common/uri.js';
 import { IConfigurationService } from '../../platform/configuration/common/configuration.js';
 import { ConfigurationService } from '../../platform/configuration/common/configurationService.js';
@@ -23,9 +21,8 @@ import { NativeParsedArgs } from '../../platform/environment/common/argv.js';
 import { INativeEnvironmentService } from '../../platform/environment/common/environment.js';
 import { NativeEnvironmentService } from '../../platform/environment/node/environmentService.js';
 import { ExtensionGalleryServiceWithNoStorageService } from '../../platform/extensionManagement/common/extensionGalleryService.js';
-import { IAllowedExtensionsService, IExtensionGalleryService, InstallOptions } from '../../platform/extensionManagement/common/extensionManagement.js';
+import { IAllowedExtensionsService, IExtensionGalleryService } from '../../platform/extensionManagement/common/extensionManagement.js';
 import { ExtensionSignatureVerificationService, IExtensionSignatureVerificationService } from '../../platform/extensionManagement/node/extensionSignatureVerificationService.js';
-import { ExtensionManagementCLI } from '../../platform/extensionManagement/common/extensionManagementCLI.js';
 import { IExtensionsProfileScannerService } from '../../platform/extensionManagement/common/extensionsProfileScannerService.js';
 import { IExtensionsScannerService } from '../../platform/extensionManagement/common/extensionsScannerService.js';
 import { ExtensionManagementService, INativeServerExtensionManagementService } from '../../platform/extensionManagement/node/extensionManagementService.js';
@@ -52,11 +49,10 @@ import { resolveCommonProperties } from '../../platform/telemetry/common/commonP
 import { ITelemetryService } from '../../platform/telemetry/common/telemetry.js';
 import { ITelemetryServiceConfig, TelemetryService } from '../../platform/telemetry/common/telemetryService.js';
 import { supportsTelemetry, NullTelemetryService, getPiiPathsFromEnvironment, isInternalTelemetry, ITelemetryAppender } from '../../platform/telemetry/common/telemetryUtils.js';
-import { OneDataSystemAppender } from '../../platform/telemetry/node/1dsAppender.js';
 import { buildTelemetryMessage } from '../../platform/telemetry/node/telemetry.js';
 import { IUriIdentityService } from '../../platform/uriIdentity/common/uriIdentity.js';
 import { UriIdentityService } from '../../platform/uriIdentity/common/uriIdentityService.js';
-import { IUserDataProfile, IUserDataProfilesService } from '../../platform/userDataProfile/common/userDataProfile.js';
+import { IUserDataProfilesService } from '../../platform/userDataProfile/common/userDataProfile.js';
 import { UserDataProfilesReadonlyService } from '../../platform/userDataProfile/node/userDataProfile.js';
 import { resolveMachineId, resolveSqmId, resolveDevDeviceId } from '../../platform/telemetry/node/telemetryUtils.js';
 import { ExtensionsProfileScannerService } from '../../platform/extensionManagement/node/extensionsProfileScannerService.js';
@@ -66,16 +62,8 @@ import { localize } from '../../nls.js';
 import { FileUserDataProvider } from '../../platform/userData/common/fileUserDataProvider.js';
 import { addUNCHostToAllowlist, getUNCHost } from '../../base/node/unc.js';
 import { AllowedExtensionsService } from '../../platform/extensionManagement/common/allowedExtensionsService.js';
-import { McpManagementCli } from '../../platform/mcp/common/mcpManagementCli.js';
 import { IExtensionGalleryManifestService } from '../../platform/extensionManagement/common/extensionGalleryManifest.js';
 import { ExtensionGalleryManifestService } from '../../platform/extensionManagement/common/extensionGalleryManifestService.js';
-import { IAllowedMcpServersService, IMcpGalleryService, IMcpManagementService } from '../../platform/mcp/common/mcpManagement.js';
-import { McpManagementService } from '../../platform/mcp/node/mcpManagementService.js';
-import { IMcpResourceScannerService, McpResourceScannerService } from '../../platform/mcp/common/mcpResourceScannerService.js';
-import { McpGalleryService } from '../../platform/mcp/common/mcpGalleryService.js';
-import { AllowedMcpServersService } from '../../platform/mcp/common/allowedMcpServersService.js';
-import { IMcpGalleryManifestService } from '../../platform/mcp/common/mcpGalleryManifest.js';
-import { McpGalleryManifestService } from '../../platform/mcp/common/mcpGalleryManifestService.js';
 import { LINUX_SYSTEM_POLICY_FILE_PATH } from '../../base/common/policy.js';
 
 class CliMain extends Disposable {
@@ -239,21 +227,10 @@ class CliMain extends Disposable {
 		// Localizations
 		services.set(ILanguagePackService, new SyncDescriptor(NativeLanguagePackService, undefined, false));
 
-		// MCP
-		services.set(IAllowedMcpServersService, new SyncDescriptor(AllowedMcpServersService, undefined, true));
-		services.set(IMcpResourceScannerService, new SyncDescriptor(McpResourceScannerService, undefined, true));
-		services.set(IMcpGalleryManifestService, new SyncDescriptor(McpGalleryManifestService, undefined, true));
-		services.set(IMcpGalleryService, new SyncDescriptor(McpGalleryService, undefined, true));
-		services.set(IMcpManagementService, new SyncDescriptor(McpManagementService, undefined, true));
-
 		// Telemetry
 		const appenders: ITelemetryAppender[] = [];
 		const isInternal = isInternalTelemetry(productService, configurationService);
 		if (supportsTelemetry(productService, environmentService)) {
-			if (productService.aiConfig?.ariaKey) {
-				appenders.push(new OneDataSystemAppender(requestService, isInternal, 'monacoworkbench', null, productService.aiConfig.ariaKey));
-			}
-
 			const config: ITelemetryServiceConfig = {
 				appenders,
 				sendErrorTelemetry: false,
@@ -303,53 +280,10 @@ class CliMain extends Disposable {
 	}
 
 	private async doRun(environmentService: INativeEnvironmentService, fileService: IFileService, userDataProfilesService: IUserDataProfilesService, instantiationService: IInstantiationService): Promise<void> {
-		let profile: IUserDataProfile | undefined = undefined;
-		if (environmentService.args.profile) {
-			profile = userDataProfilesService.profiles.find(p => p.name === environmentService.args.profile);
-			if (!profile) {
-				throw new Error(`Profile '${environmentService.args.profile}' not found.`);
-			}
-		}
-		const profileLocation = (profile ?? userDataProfilesService.defaultProfile).extensionsResource;
-
-		// List Extensions
-		if (this.argv['list-extensions']) {
-			return instantiationService.createInstance(ExtensionManagementCLI, [], new ConsoleLogger(LogLevel.Info, false)).listExtensions(!!this.argv['show-versions'], this.argv['category'], profileLocation);
-		}
-
-		// Install Extension
-		else if (this.argv['install-extension'] || this.argv['install-builtin-extension']) {
-			const installOptions: InstallOptions = { isMachineScoped: !!this.argv['do-not-sync'], installPreReleaseVersion: !!this.argv['pre-release'], donotIncludePackAndDependencies: !!this.argv['do-not-include-pack-dependencies'], profileLocation };
-			return instantiationService.createInstance(ExtensionManagementCLI, [], new ConsoleLogger(LogLevel.Info, false)).installExtensions(this.asExtensionIdOrVSIX(this.argv['install-extension'] || []), this.asExtensionIdOrVSIX(this.argv['install-builtin-extension'] || []), installOptions, !!this.argv['force']);
-		}
-
-		// Uninstall Extension
-		else if (this.argv['uninstall-extension']) {
-			return instantiationService.createInstance(ExtensionManagementCLI, [], new ConsoleLogger(LogLevel.Info, false)).uninstallExtensions(this.asExtensionIdOrVSIX(this.argv['uninstall-extension']), !!this.argv['force'], profileLocation);
-		}
-
-		else if (this.argv['update-extensions']) {
-			return instantiationService.createInstance(ExtensionManagementCLI, [], new ConsoleLogger(LogLevel.Info, false)).updateExtensions(profileLocation);
-		}
-
-		// Locate Extension
-		else if (this.argv['locate-extension']) {
-			return instantiationService.createInstance(ExtensionManagementCLI, [], new ConsoleLogger(LogLevel.Info, false)).locateExtension(this.argv['locate-extension']);
-		}
-
-		// Install MCP server
-		else if (this.argv['add-mcp']) {
-			return instantiationService.createInstance(McpManagementCli, new ConsoleLogger(LogLevel.Info, false)).addMcpDefinitions(this.argv['add-mcp']);
-		}
-
 		// Telemetry
-		else if (this.argv['telemetry']) {
+		if (this.argv['telemetry']) {
 			console.log(await buildTelemetryMessage(environmentService.appRoot, environmentService.extensionsPath));
 		}
-	}
-
-	private asExtensionIdOrVSIX(inputs: string[]): (string | URI)[] {
-		return inputs.map(input => /\.vsix$/i.test(input) ? URI.file(isAbsolute(input) ? input : join(cwd(), input)) : input);
 	}
 }
 

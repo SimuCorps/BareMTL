@@ -12,7 +12,6 @@ import { Range, IRange } from '../../../../editor/common/core/range.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { ICommentThreadChangedEvent } from '../common/commentModel.js';
 import { CommentMenus } from './commentMenus.js';
-import { ICellRange } from '../../notebook/common/notebookRange.js';
 import { IWorkbenchLayoutService } from '../../../services/layout/browser/layoutService.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { COMMENTS_SECTION, ICommentsConfiguration } from '../common/commentsConfiguration.js';
@@ -38,7 +37,7 @@ export interface ICommentInfo<T = IRange> extends CommentInfo<T> {
 
 export interface INotebookCommentInfo {
 	extensionId?: string;
-	threads: CommentThread<ICellRange>[];
+	threads: CommentThread<IRange>[];
 	uniqueOwner: string;
 	label?: string;
 }
@@ -49,7 +48,7 @@ export interface IWorkspaceCommentThreadsEvent {
 	commentThreads: CommentThread[];
 }
 
-export interface INotebookCommentThreadChangedEvent extends CommentThreadChangedEvent<ICellRange> {
+export interface INotebookCommentThreadChangedEvent extends CommentThreadChangedEvent<IRange> {
 	uniqueOwner: string;
 }
 
@@ -96,7 +95,7 @@ export interface ICommentService {
 	readonly commentsModel: ICommentsModel;
 	readonly lastActiveCommentcontroller: ICommentController | undefined;
 	setDocumentComments(resource: URI, commentInfos: ICommentInfo[]): void;
-	setWorkspaceComments(uniqueOwner: string, commentsByResource: CommentThread<IRange | ICellRange>[]): void;
+	setWorkspaceComments(uniqueOwner: string, commentsByResource: CommentThread<IRange>[]): void;
 	removeWorkspaceComments(uniqueOwner: string): void;
 	registerCommentController(uniqueOwner: string, commentControl: ICommentController): void;
 	unregisterCommentController(uniqueOwner?: string): void;
@@ -105,16 +104,16 @@ export interface ICommentService {
 	updateCommentThreadTemplate(uniqueOwner: string, threadHandle: number, range: Range): Promise<void>;
 	getCommentMenus(uniqueOwner: string): CommentMenus;
 	updateComments(ownerId: string, event: CommentThreadChangedEvent<IRange>): void;
-	updateNotebookComments(ownerId: string, event: CommentThreadChangedEvent<ICellRange>): void;
+	updateNotebookComments(ownerId: string, event: CommentThreadChangedEvent<IRange>): void;
 	disposeCommentThread(ownerId: string, threadId: string): void;
 	getDocumentComments(resource: URI): Promise<(ICommentInfo | null)[]>;
 	getNotebookComments(resource: URI): Promise<(INotebookCommentInfo | null)[]>;
 	updateCommentingRanges(ownerId: string, resourceHints?: CommentingRangeResourceHint): void;
 	hasReactionHandler(uniqueOwner: string): boolean;
-	toggleReaction(uniqueOwner: string, resource: URI, thread: CommentThread<IRange | ICellRange>, comment: Comment, reaction: CommentReaction): Promise<void>;
-	setActiveEditingCommentThread(commentThread: CommentThread<IRange | ICellRange> | null): void;
-	setCurrentCommentThread(commentThread: CommentThread<IRange | ICellRange> | undefined): void;
-	setActiveCommentAndThread(uniqueOwner: string, commentInfo: { thread: CommentThread<IRange | ICellRange>; comment?: Comment } | undefined): Promise<void>;
+	toggleReaction(uniqueOwner: string, resource: URI, thread: CommentThread<IRange>, comment: Comment, reaction: CommentReaction): Promise<void>;
+	setActiveEditingCommentThread(commentThread: CommentThread<IRange> | null): void;
+	setCurrentCommentThread(commentThread: CommentThread<IRange> | undefined): void;
+	setActiveCommentAndThread(uniqueOwner: string, commentInfo: { thread: CommentThread<IRange>; comment?: Comment } | undefined): Promise<void>;
 	enableCommenting(enable: boolean): void;
 	registerContinueOnCommentProvider(provider: IContinueOnCommentProvider): IDisposable;
 	removeContinueOnComment(pendingComment: { range: IRange | undefined; uri: URI; uniqueOwner: string; isReply?: boolean }): PendingCommentThread | undefined;
@@ -427,7 +426,7 @@ export class CommentService extends Disposable implements ICommentService {
 		}
 	}
 
-	updateNotebookComments(ownerId: string, event: CommentThreadChangedEvent<ICellRange>): void {
+	updateNotebookComments(ownerId: string, event: CommentThreadChangedEvent<IRange>): void {
 		const evt: INotebookCommentThreadChangedEvent = Object.assign({}, event, { uniqueOwner: ownerId });
 		this._onDidUpdateNotebookCommentThreads.fire(evt);
 	}

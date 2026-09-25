@@ -10,7 +10,7 @@ import * as fs from 'fs';
 import * as fsPromises from 'fs/promises';
 import * as path from 'path';
 import picomatch from 'picomatch';
-import { CancellationError, CancellationToken, CancellationTokenSource, Command, commands, CustomExecution, Disposable, Event, EventEmitter, ExcludeSettingOptions, FileDecoration, l10n, LogLevel, LogOutputChannel, Memento, ProcessExecution, ProgressLocation, ProgressOptions, RelativePattern, scm, ShellExecution, SourceControl, SourceControlInputBox, SourceControlInputBoxValidation, SourceControlInputBoxValidationType, SourceControlResourceDecorations, SourceControlResourceGroup, SourceControlResourceState, TabInputNotebookDiff, TabInputTextDiff, TabInputTextMultiDiff, Task, TaskPanelKind, TaskRevealKind, TaskRunOn, tasks, ThemeColor, ThemeIcon, Uri, window, workspace, WorkspaceEdit, WorkspaceFolder } from 'vscode';
+import { CancellationError, CancellationToken, CancellationTokenSource, Command, commands, CustomExecution, Disposable, Event, EventEmitter, ExcludeSettingOptions, FileDecoration, l10n, LogLevel, LogOutputChannel, Memento, ProcessExecution, ProgressLocation, ProgressOptions, RelativePattern, scm, ShellExecution, SourceControl, SourceControlInputBox, SourceControlInputBoxValidation, SourceControlInputBoxValidationType, SourceControlResourceDecorations, SourceControlResourceGroup, SourceControlResourceState, TabInputTextDiff, TabInputTextMultiDiff, Task, TaskPanelKind, TaskRevealKind, TaskRunOn, tasks, ThemeColor, ThemeIcon, Uri, window, workspace, WorkspaceEdit, WorkspaceFolder } from 'vscode';
 import { ActionButton } from './actionButton';
 import { ApiRepository } from './api/api1';
 import type { Branch, BranchQuery, Change, CommitOptions, DiffChange, FetchOptions, LogOptions, Ref, Remote, RepositoryKind } from './api/git';
@@ -368,17 +368,15 @@ class ProgressManager {
 		onDidChange(_ => this.updateEnablement(), null, this.disposables);
 		this.updateEnablement();
 
-		if (!workspace.isAgentSessionsWorkspace) {
-			this.repository.onDidChangeOperations(() => {
-				// Disable input box when the commit operation is running
-				this.repository.sourceControl.inputBox.enabled = !this.repository.operations.isRunning(OperationKind.Commit);
-			}, null, this.disposables);
-		}
+		this.repository.onDidChangeOperations(() => {
+			// Disable input box when the commit operation is running
+			this.repository.sourceControl.inputBox.enabled = !this.repository.operations.isRunning(OperationKind.Commit);
+		}, null, this.disposables);
 	}
 
 	private updateEnablement(): void {
 		const config = workspace.getConfiguration('git', Uri.file(this.repository.root));
-		const showProgress = config.get<boolean>('showProgress') === true && !workspace.isAgentSessionsWorkspace;
+		const showProgress = config.get<boolean>('showProgress') === true;
 
 		if (showProgress) {
 			this.enable();
@@ -951,17 +949,12 @@ export class Repository implements Disposable {
 
 		this.disposables.push(new FileEventLogger(onRepositoryWorkingTreeFileChange, onRepositoryDotGitFileChange, logger));
 
-		// Parent source control. Repositories opened in the Sessions app
-		// don't use the parent/child relationship and it is expected for
-		// a worktree repository to be opened while the main repository
-		// is closed.
-		const parentRoot = workspace.isAgentSessionsWorkspace
-			? undefined
-			: repository.kind === 'submodule'
-				? repository.dotGit.superProjectPath
-				: repository.kind === 'worktree' && repository.dotGit.commonPath
-					? path.dirname(repository.dotGit.commonPath)
-					: undefined;
+		// Parent source control
+		const parentRoot = repository.kind === 'submodule'
+			? repository.dotGit.superProjectPath
+			: repository.kind === 'worktree' && repository.dotGit.commonPath
+				? path.dirname(repository.dotGit.commonPath)
+				: undefined;
 		const parent = parentRoot
 			? this.repositoryResolver.getRepository(parentRoot)?.sourceControl
 			: undefined;
@@ -1675,7 +1668,7 @@ export class Repository implements Disposable {
 		const config = workspace.getConfiguration('git', Uri.file(this.root));
 		if (!config.get<boolean>('closeDiffOnOperation', false) && !ignoreSetting) { return; }
 
-		function checkTabShouldClose(input: TabInputTextDiff | TabInputNotebookDiff) {
+		function checkTabShouldClose(input: TabInputTextDiff) {
 			if (input.modified.scheme === 'git' && (indexResources === undefined || indexResources.some(r => pathEquals(r, input.modified.fsPath)))) {
 				// Index
 				return true;
@@ -1690,7 +1683,7 @@ export class Repository implements Disposable {
 		const diffEditorTabsToClose = window.tabGroups.all
 			.flatMap(g => g.tabs)
 			.filter(({ input }) => {
-				if (input instanceof TabInputTextDiff || input instanceof TabInputNotebookDiff) {
+				if (input instanceof TabInputTextDiff) {
 					return checkTabShouldClose(input);
 				} else if (input instanceof TabInputTextMultiDiff) {
 					return input.textDiffs.every(checkTabShouldClose);

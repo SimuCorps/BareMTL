@@ -16,7 +16,6 @@ import { ILabelService } from '../../../../../platform/label/common/label.js';
 import { overviewRulerFindMatchForeground, minimapFindMatch } from '../../../../../platform/theme/common/colorRegistry.js';
 import { IFileMatch, IPatternInfo, ITextSearchPreviewOptions, resultIsMatch, DEFAULT_MAX_SEARCH_RESULTS, ITextSearchResult, ITextSearchContext } from '../../../../services/search/common/search.js';
 import { editorMatchesToTextSearchResults, getTextSearchMatchWithModelContext } from '../../../../services/search/common/searchHelpers.js';
-import { FindMatchDecorationModel } from '../../../notebook/browser/contrib/find/findMatchDecorationModel.js';
 import { IReplaceService } from '../replace.js';
 import { FILE_MATCH_PREFIX, ISearchTreeFileMatch, ISearchTreeFolderMatch, ISearchTreeFolderMatchWorkspaceRoot, ISearchTreeMatch } from './searchTreeCommon.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
@@ -59,8 +58,6 @@ export class FileMatchImpl extends Disposable implements ISearchTreeFileMatch {
 	private static getDecorationOption(selected: boolean): ModelDecorationOptions {
 		return (selected ? FileMatchImpl._CURRENT_FIND_MATCH : FileMatchImpl._FIND_MATCH);
 	}
-
-	protected _findMatchDecorationModel: FindMatchDecorationModel | undefined;
 
 	protected _onChange = this._register(new Emitter<{ didRemove?: boolean; forceUpdateModel?: boolean }>());
 	readonly onChange: Event<{ didRemove?: boolean; forceUpdateModel?: boolean }> = this._onChange.event;
@@ -117,7 +114,6 @@ export class FileMatchImpl extends Disposable implements ISearchTreeFileMatch {
 	createMatches(): void {
 		const model = this.modelService.getModel(this._resource);
 		if (model) {
-			// todo: handle better when ai contributed results has model, currently, createMatches does not work for this
 			this.bindModel(model);
 			this.updateMatchesForModel();
 		} else {
@@ -330,7 +326,6 @@ export class FileMatchImpl extends Disposable implements ISearchTreeFileMatch {
 		this._textMatches.delete(match.id());
 		if (this.isMatchSelected(match)) {
 			this.setSelectedMatch(null);
-			this._findMatchDecorationModel?.clearCurrentFindMatchDecoration();
 		} else {
 			this.updateHighlights();
 		}
@@ -358,8 +353,4 @@ export class FileMatchImpl extends Disposable implements ISearchTreeFileMatch {
 	hasOnlyReadOnlyMatches(): boolean {
 		return this.matches().every(match => match.isReadonly);
 	}
-
-	// #region strictly notebook methods
-
-	//#endregion
 }

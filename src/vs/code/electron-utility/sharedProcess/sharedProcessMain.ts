@@ -18,14 +18,10 @@ import { LanguagePackCachedDataCleaner } from './contrib/languagePackCachedDataC
 import { LocalizationsUpdater } from './contrib/localizationsUpdater.js';
 import { LogsDataCleaner } from './contrib/logsDataCleaner.js';
 import { UnusedWorkspaceStorageDataCleaner } from './contrib/storageDataCleaner.js';
-import { AgentFinderRestProvider } from '../../../platform/agentFinder/common/agentFinderRestProvider.js';
 import { IChecksumService } from '../../../platform/checksum/common/checksumService.js';
 import { ChecksumService } from '../../../platform/checksum/node/checksumService.js';
 import { IConfigurationService } from '../../../platform/configuration/common/configuration.js';
 import { ConfigurationService } from '../../../platform/configuration/common/configurationService.js';
-import { CUSTOMIZATION_MARKETPLACE_CHANNEL_NAME, CustomizationMarketplaceChannel } from '../../../platform/customizationMarketplace/common/customizationMarketplaceIpc.js';
-import { createLazyCustomizationMarketplaceProvider, CustomizationMarketplaceService } from '../../../platform/customizationMarketplace/common/customizationMarketplaceService.js';
-import { CustomizationMarketplaceSources } from '../../../platform/customizationMarketplace/common/customizationMarketplaceSources.js';
 import { IDiagnosticsService } from '../../../platform/diagnostics/common/diagnostics.js';
 import { DiagnosticsService } from '../../../platform/diagnostics/node/diagnosticsService.js';
 import { IDownloadService } from '../../../platform/download/common/download.js';
@@ -59,20 +55,8 @@ import { ICustomEndpointTelemetryService, ITelemetryService } from '../../../pla
 import { TelemetryAppenderChannel } from '../../../platform/telemetry/common/telemetryIpc.js';
 import { TelemetryLogAppender } from '../../../platform/telemetry/common/telemetryLogAppender.js';
 import { TelemetryService } from '../../../platform/telemetry/common/telemetryService.js';
-import { supportsTelemetry, ITelemetryAppender, NullAppender, NullTelemetryService, getPiiPathsFromEnvironment, isInternalTelemetry, isLoggingOnly } from '../../../platform/telemetry/common/telemetryUtils.js';
-import { CustomEndpointTelemetryService } from '../../../platform/telemetry/node/customEndpointTelemetryService.js';
+import { supportsTelemetry, ITelemetryAppender, NullAppender, NullTelemetryService, getPiiPathsFromEnvironment, isInternalTelemetry, NullEndpointTelemetryService } from '../../../platform/telemetry/common/telemetryUtils.js';
 import { ExtensionStorageService, IExtensionStorageService } from '../../../platform/extensionManagement/common/extensionStorage.js';
-import { IgnoredExtensionsManagementService, IIgnoredExtensionsManagementService } from '../../../platform/userDataSync/common/ignoredExtensions.js';
-import { IUserDataSyncLocalStoreService, IUserDataSyncLogService, IUserDataSyncEnablementService, IUserDataSyncService, IUserDataSyncStoreManagementService, IUserDataSyncStoreService, IUserDataSyncUtilService, registerConfiguration as registerUserDataSyncConfiguration, IUserDataSyncResourceProviderService } from '../../../platform/userDataSync/common/userDataSync.js';
-import { IUserDataSyncAccountService, UserDataSyncAccountService } from '../../../platform/userDataSync/common/userDataSyncAccount.js';
-import { UserDataSyncLocalStoreService } from '../../../platform/userDataSync/common/userDataSyncLocalStoreService.js';
-import { UserDataSyncAccountServiceChannel, UserDataSyncStoreManagementServiceChannel } from '../../../platform/userDataSync/common/userDataSyncIpc.js';
-import { UserDataSyncLogService } from '../../../platform/userDataSync/common/userDataSyncLog.js';
-import { IUserDataSyncMachinesService, UserDataSyncMachinesService } from '../../../platform/userDataSync/common/userDataSyncMachines.js';
-import { UserDataSyncEnablementService } from '../../../platform/userDataSync/common/userDataSyncEnablementService.js';
-import { UserDataSyncService } from '../../../platform/userDataSync/common/userDataSyncService.js';
-import { UserDataSyncServiceChannel } from '../../../platform/userDataSync/common/userDataSyncServiceIpc.js';
-import { UserDataSyncStoreManagementService, UserDataSyncStoreService } from '../../../platform/userDataSync/common/userDataSyncStoreService.js';
 import { IUserDataProfileStorageService } from '../../../platform/userDataProfile/common/userDataProfileStorageService.js';
 import { SharedProcessUserDataProfileStorageService } from '../../../platform/userDataProfile/node/userDataProfileStorageService.js';
 import { ActiveWindowManager } from '../../../platform/windows/node/windowTracker.js';
@@ -91,34 +75,20 @@ import { InspectProfilingService as V8InspectProfilingService } from '../../../p
 import { IV8InspectProfilingService } from '../../../platform/profiling/common/profiling.js';
 import { IExtensionsScannerService } from '../../../platform/extensionManagement/common/extensionsScannerService.js';
 import { ExtensionsScannerService } from '../../../platform/extensionManagement/node/extensionsScannerService.js';
-import { ISSHRemoteAgentHostMainService, SSH_REMOTE_AGENT_HOST_CHANNEL } from '../../../platform/agentHost/common/sshRemoteAgentHost.js';
-import { SSHRemoteAgentHostMainService } from '../../../platform/agentHost/node/sshRemoteAgentHostService.js';
-import { DEV_CONTAINER_AGENT_HOST_CHANNEL, IDevContainerAgentHostMainService } from '../../../platform/agentHost/common/devContainerAgentHost.js';
-import { DevContainerAgentHostMainService } from '../../../platform/agentHost/node/devContainerAgentHostService.js';
-import { IWSLRemoteAgentHostMainService, WSL_REMOTE_AGENT_HOST_CHANNEL } from '../../../platform/agentHost/common/wslRemoteAgentHost.js';
-import { WSLRemoteAgentHostMainService } from '../../../platform/agentHost/node/wslRemoteAgentHostService.js';
-import { ITunnelAgentHostMainService, TUNNEL_AGENT_HOST_CHANNEL } from '../../../platform/agentHost/common/tunnelAgentHost.js';
-import { TunnelAgentHostMainService } from '../../../platform/agentHost/node/tunnelAgentHostService.js';
 import { IUserDataProfilesService } from '../../../platform/userDataProfile/common/userDataProfile.js';
 import { IExtensionsProfileScannerService } from '../../../platform/extensionManagement/common/extensionsProfileScannerService.js';
 import { PolicyChannelClient } from '../../../platform/policy/common/policyIpc.js';
 import { IPolicyService, NullPolicyService } from '../../../platform/policy/common/policy.js';
 import { UserDataProfilesService } from '../../../platform/userDataProfile/common/userDataProfileIpc.js';
-import { OneDataSystemAppender } from '../../../platform/telemetry/node/1dsAppender.js';
 import { UserDataProfilesCleaner } from './contrib/userDataProfilesCleaner.js';
-import { IRemoteTunnelService } from '../../../platform/remoteTunnel/common/remoteTunnel.js';
-import { UserDataSyncResourceProviderService } from '../../../platform/userDataSync/common/userDataSyncResourceProvider.js';
 import { ExtensionsContributions } from './contrib/extensions.js';
 import { localize } from '../../../nls.js';
 import { LogService } from '../../../platform/log/common/logService.js';
 import { ISharedProcessLifecycleService, SharedProcessLifecycleService } from '../../../platform/lifecycle/node/sharedProcessLifecycleService.js';
-import { RemoteTunnelService } from '../../../platform/remoteTunnel/node/remoteTunnelService.js';
-import { ITunnelProcessCoordinator, TunnelProcessCoordinator } from '../../../platform/remoteTunnel/node/tunnelProcessCoordinator.js';
 import { ExtensionsProfileScannerService } from '../../../platform/extensionManagement/node/extensionsProfileScannerService.js';
 import { ExtensionRecommendationNotificationServiceChannelClient } from '../../../platform/extensionRecommendations/common/extensionRecommendationsIpc.js';
 import { INativeHostService } from '../../../platform/native/common/native.js';
 import { NativeHostService } from '../../../platform/native/common/nativeHostService.js';
-import { UserDataAutoSyncService } from '../../../platform/userDataSync/node/userDataAutoSyncService.js';
 import { ExtensionTipsService } from '../../../platform/extensionManagement/node/extensionTipsService.js';
 import { IMainProcessService, MainProcessService } from '../../../platform/ipc/common/mainProcessService.js';
 import { RemoteStorageService } from '../../../platform/storage/common/storageService.js';
@@ -135,22 +105,6 @@ import { DefaultExtensionsInitializer } from './contrib/defaultExtensionsInitial
 import { AllowedExtensionsService } from '../../../platform/extensionManagement/common/allowedExtensionsService.js';
 import { IExtensionGalleryManifestService } from '../../../platform/extensionManagement/common/extensionGalleryManifest.js';
 import { ExtensionGalleryManifestIPCService } from '../../../platform/extensionManagement/common/extensionGalleryManifestServiceIpc.js';
-import { ISharedWebContentExtractorService } from '../../../platform/webContentExtractor/common/webContentExtractor.js';
-import { SharedWebContentExtractorService } from '../../../platform/webContentExtractor/node/sharedWebContentExtractorService.js';
-import { McpManagementService } from '../../../platform/mcp/node/mcpManagementService.js';
-import { IAllowedMcpServersService, IMcpGalleryService, IMcpManagementService } from '../../../platform/mcp/common/mcpManagement.js';
-import { IMcpResourceScannerService, McpResourceScannerService } from '../../../platform/mcp/common/mcpResourceScannerService.js';
-import { McpGalleryService } from '../../../platform/mcp/common/mcpGalleryService.js';
-import { McpManagementChannel } from '../../../platform/mcp/common/mcpManagementIpc.js';
-import { AllowedMcpServersService } from '../../../platform/mcp/common/allowedMcpServersService.js';
-import { IMcpGalleryManifestService } from '../../../platform/mcp/common/mcpGalleryManifest.js';
-import { McpGalleryManifestIPCService } from '../../../platform/mcp/common/mcpGalleryManifestServiceIpc.js';
-import { IMeteredConnectionService } from '../../../platform/meteredConnection/common/meteredConnection.js';
-import { MeteredConnectionChannelClient, METERED_CONNECTION_CHANNEL } from '../../../platform/meteredConnection/common/meteredConnectionIpc.js';
-import { PlaywrightChannel } from '../../../platform/browserView/node/playwrightChannel.js';
-import { AgentNetworkFilterService } from '../../../platform/networkFilter/common/networkFilterService.js';
-import { ILocalGitService } from '../../../platform/git/common/localGitService.js';
-import { LocalGitService } from '../../../platform/git/node/localGitService.js';
 
 class SharedProcessMain extends Disposable implements IClientConnectionFilter {
 
@@ -186,9 +140,6 @@ class SharedProcessMain extends Disposable implements IClientConnectionFilter {
 
 		// Services
 		const instantiationService = await this.initServices();
-
-		// Config
-		registerUserDataSyncConfiguration();
 
 		instantiationService.invokeFunction(accessor => {
 			const logService = accessor.get(ILogService);
@@ -317,10 +268,6 @@ class SharedProcessMain extends Disposable implements IClientConnectionFilter {
 		const nativeHostService = new NativeHostService(-1 /* we are not running in a browser window context */, mainProcessService) as INativeHostService;
 		services.set(INativeHostService, nativeHostService);
 
-		// Metered Connection
-		const meteredConnectionService = this._register(new MeteredConnectionChannelClient(mainProcessService.getChannel(METERED_CONNECTION_CHANNEL)));
-		services.set(IMeteredConnectionService, meteredConnectionService);
-
 		// Download
 		services.set(IDownloadService, new SyncDescriptor(DownloadService, undefined, true));
 
@@ -336,18 +283,12 @@ class SharedProcessMain extends Disposable implements IClientConnectionFilter {
 		if (supportsTelemetry(productService, environmentService)) {
 			const logAppender = new TelemetryLogAppender('', false, loggerService, environmentService, productService);
 			appenders.push(logAppender);
-			if (!isLoggingOnly(productService, environmentService) && productService.aiConfig?.ariaKey) {
-				const collectorAppender = new OneDataSystemAppender(requestService, internalTelemetry, 'monacoworkbench', null, productService.aiConfig.ariaKey);
-				this._register(toDisposable(() => collectorAppender.flush())); // Ensure the 1DS appender is disposed so that it flushes remaining data
-				appenders.push(collectorAppender);
-			}
 
 			telemetryService = new TelemetryService({
 				appenders,
 				commonProperties: resolveCommonProperties(release(), hostname(), process.arch, productService.commit, productService.version, this.configuration.machineId, this.configuration.sqmId, this.configuration.devDeviceId, internalTelemetry, productService.date),
 				sendErrorTelemetry: true,
 				piiPaths: getPiiPathsFromEnvironment(environmentService),
-				meteredConnectionService,
 			}, configurationService, productService);
 		} else {
 			telemetryService = NullTelemetryService;
@@ -359,8 +300,7 @@ class SharedProcessMain extends Disposable implements IClientConnectionFilter {
 		services.set(ITelemetryService, telemetryService);
 
 		// Custom Endpoint Telemetry
-		const customEndpointTelemetryService = new CustomEndpointTelemetryService(configurationService, telemetryService, loggerService, environmentService, productService);
-		services.set(ICustomEndpointTelemetryService, customEndpointTelemetryService);
+		services.set(ICustomEndpointTelemetryService, new NullEndpointTelemetryService());
 
 		// Extension Management
 		services.set(IExtensionsProfileScannerService, new SyncDescriptor(ExtensionsProfileScannerService, undefined, true));
@@ -368,13 +308,6 @@ class SharedProcessMain extends Disposable implements IClientConnectionFilter {
 		services.set(IExtensionSignatureVerificationService, new SyncDescriptor(ExtensionSignatureVerificationService, undefined, true));
 		services.set(IAllowedExtensionsService, new SyncDescriptor(AllowedExtensionsService, undefined, true));
 		services.set(INativeServerExtensionManagementService, new SyncDescriptor(ExtensionManagementService, undefined, true));
-
-		// MCP Management
-		services.set(IAllowedMcpServersService, new SyncDescriptor(AllowedMcpServersService, undefined, true));
-		services.set(IMcpGalleryManifestService, new McpGalleryManifestIPCService(this.server));
-		services.set(IMcpGalleryService, new SyncDescriptor(McpGalleryService, undefined, true));
-		services.set(IMcpResourceScannerService, new SyncDescriptor(McpResourceScannerService, undefined, true));
-		services.set(IMcpManagementService, new SyncDescriptor(McpManagementService, undefined, true));
 
 		// Extension Gallery
 		services.set(IExtensionGalleryManifestService, new ExtensionGalleryManifestIPCService(this.server, logService, productService));
@@ -389,21 +322,10 @@ class SharedProcessMain extends Disposable implements IClientConnectionFilter {
 		// Diagnostics
 		services.set(IDiagnosticsService, new SyncDescriptor(DiagnosticsService, undefined, false /* proxied to other processes */));
 
-		// Settings Sync
-		services.set(IUserDataSyncAccountService, new SyncDescriptor(UserDataSyncAccountService, undefined, true));
-		services.set(IUserDataSyncLogService, new SyncDescriptor(UserDataSyncLogService, undefined, true));
-		services.set(IUserDataSyncUtilService, ProxyChannel.toService(this.server.getChannel('userDataSyncUtil', client => client.ctx !== 'main')));
+		// Extension enablement, storage and profiles
 		services.set(IGlobalExtensionEnablementService, new SyncDescriptor(GlobalExtensionEnablementService, undefined, false /* Eagerly resets installed extensions */));
-		services.set(IIgnoredExtensionsManagementService, new SyncDescriptor(IgnoredExtensionsManagementService, undefined, true));
 		services.set(IExtensionStorageService, new SyncDescriptor(ExtensionStorageService));
-		services.set(IUserDataSyncStoreManagementService, new SyncDescriptor(UserDataSyncStoreManagementService, undefined, true));
-		services.set(IUserDataSyncStoreService, new SyncDescriptor(UserDataSyncStoreService, undefined, true));
-		services.set(IUserDataSyncMachinesService, new SyncDescriptor(UserDataSyncMachinesService, undefined, true));
-		services.set(IUserDataSyncLocalStoreService, new SyncDescriptor(UserDataSyncLocalStoreService, undefined, false /* Eagerly cleans up old backups */));
-		services.set(IUserDataSyncEnablementService, new SyncDescriptor(UserDataSyncEnablementService, undefined, true));
-		services.set(IUserDataSyncService, new SyncDescriptor(UserDataSyncService, undefined, false /* Initializes the Sync State */));
 		services.set(IUserDataProfileStorageService, new SyncDescriptor(SharedProcessUserDataProfileStorageService, undefined, true));
-		services.set(IUserDataSyncResourceProviderService, new SyncDescriptor(UserDataSyncResourceProviderService, undefined, true));
 
 		// Signing
 		services.set(ISignService, new SyncDescriptor(SignService, undefined, false /* proxied to other processes */));
@@ -415,45 +337,14 @@ class SharedProcessMain extends Disposable implements IClientConnectionFilter {
 		services.set(ISharedTunnelsService, new SyncDescriptor(SharedTunnelsService));
 		services.set(ISharedProcessTunnelService, new SyncDescriptor(SharedProcessTunnelService));
 
-		// Remote Tunnel
-		services.set(ITunnelProcessCoordinator, new SyncDescriptor(TunnelProcessCoordinator, [undefined], true));
-		services.set(IRemoteTunnelService, new SyncDescriptor(RemoteTunnelService));
-
-		// Web Content Extractor
-		services.set(ISharedWebContentExtractorService, new SyncDescriptor(SharedWebContentExtractorService));
-
-		// Local Git
-		services.set(ILocalGitService, new SyncDescriptor(LocalGitService, undefined, false /* proxied to other processes */));
-
-		// SSH Remote Agent Host
-		services.set(ISSHRemoteAgentHostMainService, new SyncDescriptor(SSHRemoteAgentHostMainService, undefined, true));
-
-		// Dev Container Agent Host
-		services.set(IDevContainerAgentHostMainService, new SyncDescriptor(DevContainerAgentHostMainService, undefined, true));
-
-		// WSL Remote Agent Host
-		services.set(IWSLRemoteAgentHostMainService, new SyncDescriptor(WSLRemoteAgentHostMainService, undefined, true));
-
-		// Tunnel Agent Host
-		services.set(ITunnelAgentHostMainService, new SyncDescriptor(TunnelAgentHostMainService, undefined, true));
-
 		return new InstantiationService(services);
 	}
 
 	private initChannels(accessor: ServicesAccessor): void {
 
-		const instantiationService = accessor.get(IInstantiationService);
-		this.server.registerChannel(CUSTOMIZATION_MARKETPLACE_CHANNEL_NAME, new CustomizationMarketplaceChannel(() => new CustomizationMarketplaceService([
-			createLazyCustomizationMarketplaceProvider(CustomizationMarketplaceSources.AgentFinderPublicFeed.id, () => instantiationService.createInstance(AgentFinderRestProvider)),
-		])));
-
 		// Extensions Management
 		const channel = new ExtensionManagementChannel(accessor.get(IExtensionManagementService), () => null);
 		this.server.registerChannel('extensions', channel);
-
-		// Mcp Management
-		const mcpManagementChannel = new McpManagementChannel(accessor.get(IMcpManagementService), () => null);
-		this.server.registerChannel('mcpManagement', mcpManagementChannel);
 
 		// Language Packs
 		const languagePacksChannel = ProxyChannel.fromService(accessor.get(ILanguagePackService), this._store);
@@ -475,65 +366,13 @@ class SharedProcessMain extends Disposable implements IClientConnectionFilter {
 		const profilingChannel = ProxyChannel.fromService(accessor.get(IV8InspectProfilingService), this._store);
 		this.server.registerChannel('v8InspectProfiling', profilingChannel);
 
-		// Settings Sync
-		const userDataSyncMachineChannel = ProxyChannel.fromService(accessor.get(IUserDataSyncMachinesService), this._store);
-		this.server.registerChannel('userDataSyncMachines', userDataSyncMachineChannel);
-
 		// Custom Endpoint Telemetry
 		const customEndpointTelemetryChannel = ProxyChannel.fromService(accessor.get(ICustomEndpointTelemetryService), this._store);
 		this.server.registerChannel('customEndpointTelemetry', customEndpointTelemetryChannel);
 
-		const userDataSyncAccountChannel = new UserDataSyncAccountServiceChannel(accessor.get(IUserDataSyncAccountService));
-		this.server.registerChannel('userDataSyncAccount', userDataSyncAccountChannel);
-
-		const userDataSyncStoreManagementChannel = new UserDataSyncStoreManagementServiceChannel(accessor.get(IUserDataSyncStoreManagementService));
-		this.server.registerChannel('userDataSyncStoreManagement', userDataSyncStoreManagementChannel);
-
-		const userDataSyncChannel = new UserDataSyncServiceChannel(accessor.get(IUserDataSyncService), accessor.get(IUserDataProfilesService), accessor.get(ILogService));
-		this.server.registerChannel('userDataSync', userDataSyncChannel);
-
-		const userDataAutoSync = this._register(accessor.get(IInstantiationService).createInstance(UserDataAutoSyncService));
-		this.server.registerChannel('userDataAutoSync', ProxyChannel.fromService(userDataAutoSync, this._store));
-
-		this.server.registerChannel('IUserDataSyncResourceProviderService', ProxyChannel.fromService(accessor.get(IUserDataSyncResourceProviderService), this._store));
-
 		// Tunnel
 		const sharedProcessTunnelChannel = ProxyChannel.fromService(accessor.get(ISharedProcessTunnelService), this._store);
 		this.server.registerChannel(ipcSharedProcessTunnelChannelName, sharedProcessTunnelChannel);
-
-		// Remote Tunnel
-		const remoteTunnelChannel = ProxyChannel.fromService(accessor.get(IRemoteTunnelService), this._store);
-		this.server.registerChannel('remoteTunnel', remoteTunnelChannel);
-
-		// Web Content Extractor
-		const webContentExtractorChannel = ProxyChannel.fromService(accessor.get(ISharedWebContentExtractorService), this._store);
-		this.server.registerChannel('sharedWebContentExtractor', webContentExtractorChannel);
-
-		// Playwright
-		const agentNetworkFilterService = this._register(new AgentNetworkFilterService(accessor.get(IConfigurationService)));
-		const playwrightChannel = this._register(new PlaywrightChannel(this.server, accessor.get(IMainProcessService), accessor.get(ILogService), agentNetworkFilterService, accessor.get(ITelemetryService)));
-		this.server.registerChannel('playwright', playwrightChannel);
-
-		// Local Git
-		const localGitChannel = ProxyChannel.fromService(accessor.get(ILocalGitService), this._store);
-		this.server.registerChannel('localGit', localGitChannel);
-
-		// SSH Remote Agent Host
-		const sshRemoteAgentHostChannel = ProxyChannel.fromService(accessor.get(ISSHRemoteAgentHostMainService), this._store);
-		this.server.registerChannel(SSH_REMOTE_AGENT_HOST_CHANNEL, sshRemoteAgentHostChannel);
-
-		// Dev Container Agent Host
-		const devContainerAgentHostChannel = ProxyChannel.fromService(accessor.get(IDevContainerAgentHostMainService), this._store);
-		this.server.registerChannel(DEV_CONTAINER_AGENT_HOST_CHANNEL, devContainerAgentHostChannel);
-
-		// WSL Remote Agent Host
-		const wslRemoteAgentHostChannel = ProxyChannel.fromService(accessor.get(IWSLRemoteAgentHostMainService), this._store);
-		this.server.registerChannel(WSL_REMOTE_AGENT_HOST_CHANNEL, wslRemoteAgentHostChannel);
-
-		// Tunnel Agent Host
-		const tunnelAgentHostChannel = ProxyChannel.fromService(accessor.get(ITunnelAgentHostMainService), this._store);
-		this.server.registerChannel(TUNNEL_AGENT_HOST_CHANNEL, tunnelAgentHostChannel);
-
 	}
 
 	private registerErrorHandler(logService: ILogService): void {

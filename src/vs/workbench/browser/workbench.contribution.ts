@@ -529,29 +529,6 @@ const registry = Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Con
 				'description': localize('suggestCommands', "Controls whether the command palette should have a list of commonly used commands."),
 				'default': false
 			},
-			'workbench.commandPalette.experimental.askChatLocation': {
-				'type': 'string',
-				tags: ['experimental'],
-				'description': localize('askChatLocation', "Controls where the command palette should ask chat questions."),
-				'default': 'chatView',
-				enum: ['chatView', 'quickChat'],
-				enumDescriptions: [
-					localize('askChatLocation.chatView', "Ask chat questions in the Chat view."),
-					localize('askChatLocation.quickChat', "Ask chat questions in Quick Chat.")
-				]
-			},
-			'workbench.commandPalette.showAskInChat': {
-				'type': 'boolean',
-				tags: ['experimental'],
-				'description': localize('showAskInChat', "Controls whether the command palette shows 'Ask in Chat' option at the bottom."),
-				'default': true
-			},
-			'workbench.commandPalette.experimental.enableNaturalLanguageSearch': {
-				'type': 'boolean',
-				tags: ['experimental'],
-				'description': localize('enableNaturalLanguageSearch', "Controls whether the command palette should include similar commands. You must have an extension installed that provides Natural Language support."),
-				'default': true
-			},
 			'workbench.quickOpen.closeOnFocusLost': {
 				'type': 'boolean',
 				'description': localize('closeOnFocusLost', "Controls whether Quick Open should close automatically once it loses focus."),
@@ -585,7 +562,7 @@ const registry = Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Con
 			'workbench.sideBar.location': {
 				'type': 'string',
 				'enum': ['left', 'right'],
-				'default': 'left',
+				'default': 'right',
 				'description': localize('sideBarLocation', "Controls the location of the primary side bar and activity bar. They can either show on the left or right of the workbench. The secondary side bar will show on the opposite side of the workbench."),
 				agentsWindow: { default: 'left', readOnly: true },
 			},
@@ -874,7 +851,7 @@ const registry = Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Con
 		localize('rootNameShort', "`${rootNameShort}`: shortened name of the workspace without suffixes (e.g. myFolder, myRemoteFolder or myWorkspace)."),
 		localize('rootPath', "`${rootPath}`: file path of the opened workspace or folder (e.g. /Users/Development/myWorkspace)."),
 		localize('profileName', "`${profileName}`: name of the profile in which the workspace is opened (e.g. Data Science (Profile)). Ignored if default profile is used."),
-		localize('appName', "`${appName}`: e.g. VS Code."),
+		localize('appName', "`${appName}`: e.g. BareMTL."),
 		localize('remoteName', "`${remoteName}`: e.g. SSH"),
 		localize('dirty', "`${dirty}`: an indicator for when the active editor has unsaved changes."),
 		localize('focusedView', "`${focusedView}`: the name of the view that is currently focused."),

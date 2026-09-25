@@ -8,8 +8,9 @@
 AppId={#AppId}
 AppName={#NameLong}
 AppVerName={#NameVersion}
-AppPublisher=Microsoft Corporation
-AppPublisherURL=https://code.visualstudio.com/
+AppPublisher=SimuCorps
+AppPublisherURL=https://simucorps.org/
+AppCopyright=Copyright (C) 2026 SimuCorps (https://simucorps.org). Portions Copyright (C) Microsoft Corporation. All rights reserved
 AppSupportURL=https://code.visualstudio.com/
 AppUpdatesURL=https://code.visualstudio.com/
 DefaultGroupName={#NameLong}
@@ -1382,7 +1383,7 @@ begin
 
   #if "user" == InstallTarget
     if not WizardSilent() and IsAdmin() then begin
-      if MsgBox('This User Installer is not meant to be run as an Administrator. If you would like to install VS Code for all users in this system, download the System Installer instead from https://code.visualstudio.com. Are you sure you want to continue?', mbError, MB_OKCANCEL) = IDCANCEL then begin
+      if MsgBox('This User Installer is not meant to be run as an Administrator. If you would like to install BareMTL for all users in this system, download the System Installer instead from https://code.visualstudio.com. Are you sure you want to continue?', mbError, MB_OKCANCEL) = IDCANCEL then begin
         Result := False;
       end;
     end;

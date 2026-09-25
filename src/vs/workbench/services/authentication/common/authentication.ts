@@ -124,7 +124,6 @@ export interface IAuthenticationProviderHostDelegate {
 	 * Creates an XAA (enterprise-managed, ID-JAG) authentication provider for the given SSO issuer.
 	 * The returned string is the provider id.
 	 */
-	createXaa?(issuer: URI): Promise<string>;
 }
 
 export function getDynamicAuthenticationProviderId(authorizationServer: URI, resource: IAuthorizationProtectedResourceMetadata | undefined): string {
@@ -259,14 +258,6 @@ export interface IAuthenticationService {
 	 */
 	createDynamicAuthenticationProvider(authorizationServer: URI, serverMetadata: IAuthorizationServerMetadata, resourceMetadata: IAuthorizationProtectedResourceMetadata | undefined, clientId?: string, clientSecret?: string): Promise<IAuthenticationProvider | undefined>;
 
-	/**
-	 * Gets or creates a built-in XAA (enterprise-managed, ID-JAG) authentication provider for the given
-	 * SSO issuer. Subsequent calls with the same issuer return the existing provider. The returned id
-	 * can be used with {@link getSessions}/{@link createSession} just like any other provider.
-	 *
-	 * @param issuer The OAuth/OIDC issuer URL (typically read from `mcp.enterpriseManagedAuth.idp`).
-	 */
-	createOrGetXaaProvider(issuer: URI): Promise<string | undefined>;
 }
 
 export function isAuthenticationSession(thing: unknown): thing is AuthenticationSession {

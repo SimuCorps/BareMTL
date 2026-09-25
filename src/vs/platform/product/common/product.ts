@@ -13,10 +13,6 @@ interface IPackageConfiguration {
 	readonly dependencies?: Readonly<Record<string, string>>;
 }
 
-function getDependencyVersion(packageConfiguration: IPackageConfiguration, packageName: string): string | undefined {
-	return packageConfiguration.dependencies?.[packageName]?.replace(/^[~^]/, '');
-}
-
 /**
  * @deprecated It is preferred that you use `IProductService` if you can. This
  * allows web embedders to override our defaults. But for things like `product.quality`,
@@ -59,12 +55,6 @@ else if (globalThis._VSCODE_PRODUCT_JSON && globalThis._VSCODE_PACKAGE_JSON) {
 		});
 	}
 
-	if (!product.copilotVersions) {
-		const sdk = getDependencyVersion(packageConfiguration, '@github/copilot-sdk');
-		if (packageConfiguration.copilotRuntimeVersion && sdk) {
-			Object.assign(product, { copilotVersions: { runtime: packageConfiguration.copilotRuntimeVersion, sdk } });
-		}
-	}
 }
 
 // Web environment or unknown
@@ -78,30 +68,12 @@ else {
 	if (Object.keys(product).length === 0) {
 		Object.assign(product, {
 			version: '1.104.0-dev',
-			nameShort: 'Code - OSS Dev',
-			nameLong: 'Code - OSS Dev',
-			applicationName: 'code-oss',
-			dataFolderName: '.vscode-oss',
-			urlProtocol: 'code-oss',
-			reportIssueUrl: 'https://github.com/microsoft/vscode/issues/new',
+			nameShort: 'BareMTL Dev',
+			nameLong: 'BareMTL Dev',
+			applicationName: 'baremtl',
+			dataFolderName: '.baremtl',
+			urlProtocol: 'baremtl',
 			licenseName: 'MIT',
-			licenseUrl: 'https://github.com/microsoft/vscode/blob/main/LICENSE.txt',
-			serverLicenseUrl: 'https://github.com/microsoft/vscode/blob/main/LICENSE.txt',
-			defaultChatAgent: {
-				extensionId: 'GitHub.copilot',
-				chatExtensionId: 'GitHub.copilot-chat',
-				provider: {
-					default: {
-						id: 'github',
-						name: 'GitHub',
-					},
-					enterprise: {
-						id: 'github-enterprise',
-						name: 'GitHub Enterprise',
-					}
-				},
-				providerScopes: []
-			}
 		});
 	}
 }

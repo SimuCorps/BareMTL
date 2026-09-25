@@ -73,32 +73,14 @@ const apiMenus: IAPIMenu[] = [
 		description: localize('menus.editorContextCopyAs', "'Copy as' submenu in the editor context menu")
 	},
 	{
-		key: 'editor/context/share',
-		id: MenuId.EditorContextShare,
-		description: localize('menus.editorContextShare', "'Share' submenu in the editor context menu"),
-		proposed: 'contribShareMenu'
-	},
-	{
 		key: 'explorer/context',
 		id: MenuId.ExplorerContext,
 		description: localize('menus.explorerContext', "The file explorer context menu")
 	},
 	{
-		key: 'explorer/context/share',
-		id: MenuId.ExplorerContextShare,
-		description: localize('menus.explorerContextShare', "'Share' submenu in the file explorer context menu"),
-		proposed: 'contribShareMenu'
-	},
-	{
 		key: 'editor/title/context',
 		id: MenuId.EditorTitleContext,
 		description: localize('menus.editorTabContext', "The editor tabs context menu")
-	},
-	{
-		key: 'editor/title/context/share',
-		id: MenuId.EditorTitleContextShare,
-		description: localize('menus.editorTitleContextShare', "'Share' submenu inside the editor title context menu"),
-		proposed: 'contribShareMenu'
 	},
 	{
 		key: 'debug/callstack/context',
@@ -127,11 +109,6 @@ const apiMenus: IAPIMenu[] = [
 		description: localize('menus.debugCreateConfiguation', "The debug create configuration menu")
 	},
 	{
-		key: 'notebook/variables/context',
-		id: MenuId.NotebookVariablesContext,
-		description: localize('menus.notebookVariablesContext', "The notebook variables view context menu")
-	},
-	{
 		key: 'menuBar/home',
 		id: MenuId.MenubarHomeMenu,
 		description: localize('menus.home', "The home indicator context menu (web only)"),
@@ -142,12 +119,6 @@ const apiMenus: IAPIMenu[] = [
 		key: 'menuBar/edit/copy',
 		id: MenuId.MenubarCopy,
 		description: localize('menus.opy', "'Copy as' submenu in the top level Edit menu")
-	},
-	{
-		key: 'chat/input/status',
-		id: MenuId.ChatInputStatus,
-		description: localize('menus.chatInputStatus', "The status indicator area at the rightmost end of the toolbar shown beneath the chat input"),
-		supportsSubmenus: false
 	},
 	{
 		key: 'scm/title',
@@ -225,12 +196,6 @@ const apiMenus: IAPIMenu[] = [
 		id: MenuId.SCMArtifactContext,
 		description: localize('menus.artifactContext', "The Source Control artifact context menu"),
 		proposed: 'contribSourceControlArtifactMenu'
-	},
-	{
-		key: 'statusBar/remoteIndicator',
-		id: MenuId.StatusBarRemoteIndicatorMenu,
-		description: localize('menus.statusBarRemoteIndicator', "The remote indicator menu in the status bar"),
-		supportsSubmenus: false
 	},
 	{
 		key: 'terminal/context',
@@ -312,85 +277,9 @@ const apiMenus: IAPIMenu[] = [
 		proposed: 'contribCommentsViewThreadMenus'
 	},
 	{
-		key: 'notebook/toolbar',
-		id: MenuId.NotebookToolbar,
-		description: localize('notebook.toolbar', "The contributed notebook toolbar menu")
-	},
-	{
-		key: 'notebook/kernelSource',
-		id: MenuId.NotebookKernelSource,
-		description: localize('notebook.kernelSource', "The contributed notebook kernel sources menu"),
-		proposed: 'notebookKernelSource'
-	},
-	{
-		key: 'notebook/cell/title',
-		id: MenuId.NotebookCellTitle,
-		description: localize('notebook.cell.title', "The contributed notebook cell title menu")
-	},
-	{
-		key: 'notebook/cell/execute',
-		id: MenuId.NotebookCellExecute,
-		description: localize('notebook.cell.execute', "The contributed notebook cell execution menu")
-	},
-	{
-		key: 'interactive/toolbar',
-		id: MenuId.InteractiveToolbar,
-		description: localize('interactive.toolbar', "The contributed interactive toolbar menu"),
-	},
-	{
-		key: 'interactive/cell/title',
-		id: MenuId.InteractiveCellTitle,
-		description: localize('interactive.cell.title', "The contributed interactive cell title menu"),
-	},
-	{
-		key: 'issue/reporter',
-		id: MenuId.IssueReporter,
-		description: localize('issue.reporter', "The contributed issue reporter menu")
-	},
-	{
-		key: 'testing/item/context',
-		id: MenuId.TestItem,
-		description: localize('testing.item.context', "The contributed test item menu"),
-	},
-	{
-		key: 'testing/item/gutter',
-		id: MenuId.TestItemGutter,
-		description: localize('testing.item.gutter.title', "The menu for a gutter decoration for a test item"),
-	},
-	{
-		key: 'testing/profiles/context',
-		id: MenuId.TestProfilesContext,
-		description: localize('testing.profiles.context.title', "The menu for configuring testing profiles."),
-	},
-	{
-		key: 'testing/item/result',
-		id: MenuId.TestPeekElement,
-		description: localize('testing.item.result.title', "The menu for an item in the Test Results view or peek."),
-	},
-	{
-		key: 'testing/message/context',
-		id: MenuId.TestMessageContext,
-		description: localize('testing.message.context.title', "A prominent button overlaying editor content where the message is displayed"),
-	},
-	{
-		key: 'testing/message/content',
-		id: MenuId.TestMessageContent,
-		description: localize('testing.message.content.title', "Context menu for the message in the results tree"),
-	},
-	{
 		key: 'extension/context',
 		id: MenuId.ExtensionContext,
 		description: localize('menus.extensionContext', "The extension context menu")
-	},
-	{
-		key: 'timeline/title',
-		id: MenuId.TimelineTitle,
-		description: localize('view.timelineTitle', "The Timeline view title menu")
-	},
-	{
-		key: 'timeline/item/context',
-		id: MenuId.TimelineItemContext,
-		description: localize('view.timelineContext', "The Timeline view item context menu")
 	},
 	{
 		key: 'ports/item/context',
@@ -417,12 +306,6 @@ const apiMenus: IAPIMenu[] = [
 		key: 'webview/context',
 		id: MenuId.WebviewContext,
 		description: localize('webview.context', "The webview context menu")
-	},
-	{
-		key: 'file/share',
-		id: MenuId.MenubarShare,
-		description: localize('menus.share', "Share submenu shown in the top level File menu."),
-		proposed: 'contribShareMenu'
 	},
 	{
 		key: 'editor/inlineCompletions/actions',
@@ -471,110 +354,6 @@ const apiMenus: IAPIMenu[] = [
 		id: MenuId.DiffEditorSelectionToolbar,
 		description: localize('menus.diffEditorGutterToolBarMenus', "The gutter toolbar in the diff editor"),
 		proposed: 'contribDiffEditorGutterToolBarMenus'
-	},
-	{
-		key: 'searchPanel/aiResults/commands',
-		id: MenuId.SearchActionMenu,
-		description: localize('searchPanel.aiResultsCommands', "The commands that will contribute to the menu rendered as buttons next to the AI search title"),
-	},
-	{
-		key: 'editor/context/chat',
-		id: MenuId.ChatTextEditorMenu,
-		description: localize('menus.chatTextEditor', "The Chat submenu in the text editor context menu."),
-		supportsSubmenus: false,
-		proposed: 'chatParticipantPrivate'
-	},
-	{
-		key: 'chat/input/editing/sessionToolbar',
-		id: MenuId.ChatEditingSessionChangesToolbar,
-		description: localize('menus.chatEditingSessionChangesToolbar', "The Chat Editing widget toolbar menu for session changes."),
-		proposed: 'chatSessionsProvider'
-	},
-	{
-		key: 'chat/input/editing/sessionTitleToolbar',
-		id: MenuId.ChatEditingSessionTitleToolbar,
-		description: localize('menus.chatEditingSessionTitleToolbar', "The Chat Editing widget toolbar menu for session title."),
-		proposed: 'chatSessionsProvider'
-	},
-	{
-		// TODO: rename this to something like: `chatSessions/item/inline`
-		key: 'chat/chatSessions',
-		id: MenuId.AgentSessionsContext,
-		description: localize('menus.chatSessions', "The Chat Sessions menu."),
-		supportsSubmenus: false,
-		proposed: 'chatSessionsProvider'
-	},
-	{
-		key: 'chatSessions/item/context',
-		id: MenuId.SessionItemContextMenu,
-		description: localize('menus.chatSessionsItemContext', "The context menu for items in the Sessions window's session list."),
-		supportsSubmenus: false,
-		proposed: 'chatSessionsProvider'
-	},
-	{
-		key: 'chatSessions/newSession',
-		id: MenuId.AgentSessionsCreateSubMenu,
-		description: localize('menus.chatSessionsNewSession', "Menu for new chat sessions."),
-		supportsSubmenus: false,
-		proposed: 'chatSessionsProvider'
-	},
-	{
-		key: 'chat/multiDiff/context',
-		id: MenuId.ChatMultiDiffContext,
-		description: localize('menus.chatMultiDiffContext', "The Chat Multi-Diff context menu."),
-		supportsSubmenus: false,
-		proposed: 'chatSessionsProvider',
-	},
-	{
-		key: 'chat/customizations/create',
-		id: MenuId.for('AICustomizationManagementCreate'),
-		description: localize('menus.chatCustomizationsCreate', "The create button in the Chat Customizations management editor."),
-		supportsSubmenus: false,
-		proposed: 'chatSessionCustomizationProvider',
-	},
-	{
-		key: 'chat/customizations/item',
-		id: MenuId.for('AICustomizationManagementEditorItem'),
-		description: localize('menus.chatCustomizationsItem', "The item context menu in the Chat Customizations management editor, including inline actions."),
-		supportsSubmenus: false,
-		proposed: 'chatSessionCustomizationProvider',
-	},
-	{
-		key: 'chat/editor/inlineGutter',
-		id: MenuId.ChatEditorInlineMenu,
-		description: localize('menus.chatEditorInlineGutter', "The inline gutter menu in the chat editor."),
-		supportsSubmenus: false,
-		proposed: 'contribChatEditorInlineGutterMenu',
-	},
-	{
-		key: 'chat/contextUsage/actions',
-		id: MenuId.ChatContextUsageActions,
-		description: localize('menus.chatContextUsageActions', "Actions in the chat context usage details popup."),
-		proposed: 'chatParticipantAdditions'
-	},
-	{
-		key: 'chat/newSession',
-		id: MenuId.ChatNewMenu,
-		description: localize('menus.chatNewSession', "The Chat new session menu."),
-		proposed: 'chatSessionsProvider'
-	},
-	{
-		key: 'agents/changes/actions',
-		id: MenuId.AgentsChangesToolbar,
-		description: localize('menus.agentsChangesToolbar', "The Changes view toolbar of the agents window."),
-		proposed: 'chatSessionsProvider'
-	},
-	{
-		key: 'agents/changes/actions/primary',
-		id: MenuId.AgentsChangesPrimaryActionSubMenu,
-		description: localize('menus.agentsChangesPrimaryActionSubMenu', "The Changes view toolbar primary action submenu in the agents window."),
-		proposed: 'chatSessionsProvider'
-	},
-	{
-		key: 'agents/change/inline',
-		id: MenuId.AgentsChangeInlineToolbar,
-		description: localize('menus.agentsChangeInline', "The Changes view inline menu in the agents window."),
-		proposed: 'chatSessionsProvider'
 	},
 ];
 

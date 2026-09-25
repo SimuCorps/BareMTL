@@ -143,8 +143,8 @@ const electronAssetResolver = electronFeed
 export const config = {
 	version: electronVersion,
 	productAppName: product.nameLong,
-	companyName: 'Microsoft Corporation',
-	copyright: 'Copyright (C) 2026 Microsoft. All rights reserved',
+	companyName: 'SimuCorps',
+	copyright: 'Copyright (C) 2026 SimuCorps (https://simucorps.org). Portions Copyright (C) Microsoft Corporation. All rights reserved',
 	darwinExecutable: product.nameShort,
 	darwinIcon: 'resources/darwin/code.icns',
 	darwinBundleIdentifier: product.darwinBundleIdentifier,

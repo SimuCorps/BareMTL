@@ -21,11 +21,10 @@ import { EditorInputCapabilities, EditorsOrder, IEditorPartOptions } from '../..
 import { EditorGroupModel } from '../../../../common/editor/editorGroupModel.js';
 import { EditorInput } from '../../../../common/editor/editorInput.js';
 import { IHostService } from '../../../../services/host/browser/host.js';
-import { INotebookDocumentService, NotebookDocumentWorkbenchService } from '../../../../services/notebook/common/notebookDocumentService.js';
 import { TestFileEditorInput, TestHostService, TestMenuService, workbenchInstantiationService } from '../../workbenchTestServices.js';
 import '../../../../contrib/modernUI/browser/media/tabs.css';
-import '../../../../contrib/modernUI/browser/connectedEditorTabs.js';
 
+import '../../../../contrib/modernUI/browser/connectedEditorTabs.js';
 suite('MultiEditorTabsControl', () => {
 
 	let disposables: DisposableStore;
@@ -52,7 +51,6 @@ suite('MultiEditorTabsControl', () => {
 
 		instantiationService = workbenchInstantiationService(undefined, disposables);
 		instantiationService.stub(ITreeViewsDnDService, new TreeViewsDnDService());
-		instantiationService.stub(INotebookDocumentService, new NotebookDocumentWorkbenchService());
 
 		hostService = instantiationService.get(IHostService) as TestHostService;
 

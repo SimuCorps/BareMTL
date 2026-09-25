@@ -19,7 +19,6 @@ import { IExtHostConfiguration } from '../../common/extHostConfiguration.js';
 import { ExtHostDebugServiceBase } from '../../common/extHostDebugService.js';
 import { IExtHostEditorTabs } from '../../common/extHostEditorTabs.js';
 import { IExtHostExtensionService } from '../../common/extHostExtensionService.js';
-import { IExtHostTesting } from '../../common/extHostTesting.js';
 import { IExtHostVariableResolverProvider } from '../../common/extHostVariableResolverService.js';
 import { IExtHostWorkspace } from '../../common/extHostWorkspace.js';
 import { SingleProxyRPCProtocol } from '../common/testRPCProtocol.js';
@@ -53,8 +52,7 @@ suite('Extension host debug visualization session items', () => {
 			new class extends mock<IExtHostConfiguration>() { },
 			new class extends mock<IExtHostEditorTabs>() { },
 			new class extends mock<IExtHostVariableResolverProvider>() { },
-			new class extends mock<IExtHostCommands>() { },
-			new class extends mock<IExtHostTesting>() { }
+			new class extends mock<IExtHostCommands>() { }
 		));
 		await service.$acceptDebugSessionStarted(session('first'));
 	});

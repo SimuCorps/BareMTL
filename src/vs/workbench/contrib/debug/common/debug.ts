@@ -27,7 +27,6 @@ import { DebugCompoundRoot } from './debugCompoundRoot.js';
 import { IDataBreakpointOptions, IFunctionBreakpointOptions, IInstructionBreakpointOptions } from './debugModel.js';
 import { Source } from './debugSource.js';
 import { ITaskIdentifier } from '../../tasks/common/tasks.js';
-import { LiveTestResult } from '../../testing/common/testResult.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { IView } from '../../../common/views.js';
 
@@ -229,11 +228,6 @@ export interface LoadedSourceEvent {
 
 export type IDebugSessionReplMode = 'separate' | 'mergeWithParent';
 
-export interface IDebugTestRunReference {
-	runId: string;
-	taskId: string;
-}
-
 export interface IDebugSessionOptions {
 	noDebug?: boolean;
 	parentSession?: IDebugSession;
@@ -246,11 +240,6 @@ export interface IDebugSessionOptions {
 	suppressDebugToolbar?: boolean;
 	suppressDebugStatusbar?: boolean;
 	suppressDebugView?: boolean;
-	/**
-	 * Set if the debug session is correlated with a test run. Stopping/restarting
-	 * the session will instead stop/restart the test run.
-	 */
-	testRun?: IDebugTestRunReference;
 }
 
 export interface IDataBreakpointInfoResponse {
@@ -386,8 +375,6 @@ export interface IDebugSession extends ITreeElement, IDisposable {
 	readonly suppressDebugStatusbar: boolean;
 	readonly suppressDebugView: boolean;
 	readonly lifecycleManagedByParent: boolean;
-	/** Test run this debug session was spawned by */
-	readonly correlatedTestRun?: LiveTestResult;
 
 	setSubId(subId: string | undefined): void;
 
@@ -413,8 +400,6 @@ export interface IDebugSession extends ITreeElement, IDisposable {
 	removeReplExpressions(): void;
 	addReplExpression(stackFrame: IStackFrame | undefined, name: string): Promise<void>;
 	appendToRepl(data: INewReplElementData): void;
-	/** Cancel any associated test run set through the DebugSessionOptions */
-	cancelCorrelatedTestRun(): void;
 
 	// session events
 	readonly onDidEndAdapter: Event<AdapterEndEvent | undefined>;

@@ -97,7 +97,6 @@ export interface IShellLaunchConfigResolveOptions {
 	remoteAuthority: string | undefined;
 	os: OperatingSystem;
 	allowAutomationShell?: boolean;
-	allowAgentHostShell?: boolean;
 }
 
 export type FontWeight = 'normal' | 'bold' | number;
@@ -494,8 +493,6 @@ export const enum TerminalCommandId {
 	SetDimensions = 'workbench.action.terminal.setDimensions',
 	FocusHover = 'workbench.action.terminal.focusHover',
 	ShowEnvironmentContributions = 'workbench.action.terminal.showEnvironmentContributions',
-	StartVoice = 'workbench.action.terminal.startVoice',
-	StopVoice = 'workbench.action.terminal.stopVoice',
 	RevealCommand = 'workbench.action.terminal.revealCommand',
 }
 
@@ -554,7 +551,6 @@ export const DEFAULT_COMMANDS_TO_SKIP_SHELL: string[] = [
 	TerminalCommandId.Toggle,
 	TerminalCommandId.FocusHover,
 	AccessibilityCommandId.OpenAccessibilityHelp,
-	TerminalCommandId.StopVoice,
 	TerminalCommandId.SendSignal,
 	'workbench.action.tasks.rerunForActiveTerminal',
 	'editor.action.toggleTabFocusMode',

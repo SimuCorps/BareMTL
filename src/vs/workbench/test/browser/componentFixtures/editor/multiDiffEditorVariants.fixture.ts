@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Dimension } from '../../../../../base/browser/dom.js';
-// eslint-disable-next-line local/code-import-patterns, local/code-amd-node-module
+// eslint-disable-next-line local/code-import-patterns
 import { z } from 'zod';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { ValueWithChangeEvent } from '../../../../../base/common/event.js';

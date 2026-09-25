@@ -14,7 +14,6 @@ const { app, BrowserWindow, ipcMain, crashReporter, net: electronNet, protocol, 
 const product = require('../../../product.json');
 const { tmpdir } = require('os');
 const { existsSync, mkdirSync, promises } = require('fs');
-const http = require('http');
 const path = require('path');
 const mocha = require('mocha');
 const events = require('events');
@@ -247,60 +246,6 @@ class IPCRunner extends events.EventEmitter {
 }
 
 app.on('ready', async () => {
-	const outDir = args.build ? 'out-build' : 'out';
-	const [{ createRemoteResourceRequestHandler }, { getRemoteResourceResponseHeaders }] = await Promise.all([
-		import(url.pathToFileURL(path.join(__dirname, `../../../${outDir}/vs/platform/protocol/electron-main/remoteResourceProtocol.js`)).href),
-		import(url.pathToFileURL(path.join(__dirname, `../../../${outDir}/vs/server/node/remoteResourceResponse.js`)).href),
-	]);
-	/** @type {import('http').IncomingHttpHeaders | undefined} */
-	let remoteResourceRequestHeaders;
-	const remoteResourceServer = http.createServer((request, response) => {
-		remoteResourceRequestHeaders = request.headers;
-		response.writeHead(200, {
-			...getRemoteResourceResponseHeaders(request.headers.origin, () => false),
-			'Content-Type': 'image/svg+xml',
-		});
-		response.write('<svg xmlns="http://www.w3.org/2000/svg">');
-		setTimeout(() => response.end('</svg>'), 10);
-	});
-	await new Promise((resolve, reject) => {
-		remoteResourceServer.once('error', reject);
-		remoteResourceServer.listen(0, '127.0.0.1', () => resolve());
-	});
-	const remoteResourceServerAddress = remoteResourceServer.address();
-	if (!remoteResourceServerAddress || typeof remoteResourceServerAddress === 'string') {
-		throw new Error('Remote resource test server did not bind to a TCP port');
-	}
-	protocol.handle('vscode-remote-resource', createRemoteResourceRequestHandler({ warn() { } }));
-	ipcMain.handle('vscode:test-remote-resource', async () => {
-		const remoteResourceTestWindow = new BrowserWindow({ show: false });
-		try {
-			const pagePath = url.pathToFileURL(path.join(__dirname, 'fixtures/remote-resource.html')).pathname;
-			await remoteResourceTestWindow.loadURL(`vscode-file://vscode-app${pagePath}`);
-
-			const remoteResourceUrl = `vscode-remote-resource://127.0.0.1:${remoteResourceServerAddress.port}/vscode-remote-resource`;
-			await remoteResourceTestWindow.webContents.executeJavaScript(`
-				new Promise((resolve, reject) => {
-					const image = new Image();
-					image.crossOrigin = 'anonymous';
-					image.onload = resolve;
-					image.onerror = () => reject(new Error('Remote resource image failed to load'));
-					image.src = ${JSON.stringify(remoteResourceUrl)};
-					document.body.append(image);
-				})
-			`);
-			return {
-				loaded: true,
-				requestHeaders: {
-					origin: remoteResourceRequestHeaders?.origin,
-					secFetchMode: remoteResourceRequestHeaders?.['sec-fetch-mode'],
-				},
-			};
-		} finally {
-			remoteResourceTestWindow.close();
-		}
-	});
-
 	// needed when loading resources from the renderer, e.g xterm.js or the encoding lib
 	session.defaultSession.protocol.handle('vscode-file', request => {
 		const fileUrl = new URL(request.url.replace(/^vscode-file:/, 'file:'));
@@ -505,7 +450,6 @@ app.on('ready', async () => {
 	if (!args.dev) {
 		ipcMain.on('all done', async () => {
 			await Promise.all(reporters.map(r => r.drain?.()));
-			await new Promise(resolve => remoteResourceServer.close(resolve));
 			app.exit(runner.didFail ? 1 : 0);
 		});
 	}

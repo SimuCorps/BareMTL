@@ -16,7 +16,6 @@ import { Position, Parts, PartOpensMaximizedOptions, IWorkbenchLayoutService, po
 import { isTemporaryWorkspace, IWorkspaceContextService, WorkbenchState } from '../../platform/workspace/common/workspace.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../platform/storage/common/storage.js';
 import { IConfigurationChangeEvent, IConfigurationService, isConfigured } from '../../platform/configuration/common/configuration.js';
-import { ChatAIDisabledSettingId } from '../../platform/chat/common/chatSettings.js';
 import { ITitleService } from '../services/title/browser/titleService.js';
 import { ServicesAccessor } from '../../platform/instantiation/common/instantiation.js';
 import { StartupKind, ILifecycleService } from '../services/lifecycle/common/lifecycle.js';
@@ -2896,7 +2895,7 @@ const LayoutStateKeys = {
 	AUXILIARYBAR_EMPTY: new InitializationStateKey<boolean>('auxiliaryBar.empty', StorageScope.PROFILE, StorageTarget.MACHINE, false),
 
 	// Part Positions
-	SIDEBAR_POSITON: new RuntimeStateKey<Position>('sideBar.position', StorageScope.WORKSPACE, StorageTarget.MACHINE, Position.LEFT),
+	SIDEBAR_POSITON: new RuntimeStateKey<Position>('sideBar.position', StorageScope.WORKSPACE, StorageTarget.MACHINE, Position.RIGHT),
 	PANEL_POSITION: new RuntimeStateKey<Position>('panel.position', StorageScope.WORKSPACE, StorageTarget.MACHINE, Position.BOTTOM),
 	PANEL_ALIGNMENT: new RuntimeStateKey<PanelAlignment>('panel.alignment', StorageScope.PROFILE, StorageTarget.USER, 'center'),
 
@@ -2980,7 +2979,7 @@ class LayoutStateModel extends Disposable {
 		}
 
 		if (configurationChangeEvent.affectsConfiguration(LegacyWorkbenchLayoutSettings.SIDEBAR_POSITION)) {
-			this.setRuntimeValueAndFire(LayoutStateKeys.SIDEBAR_POSITON, positionFromString(this.configurationService.getValue(LegacyWorkbenchLayoutSettings.SIDEBAR_POSITION) ?? 'left'));
+			this.setRuntimeValueAndFire(LayoutStateKeys.SIDEBAR_POSITON, positionFromString(this.configurationService.getValue(LegacyWorkbenchLayoutSettings.SIDEBAR_POSITION) ?? 'right'));
 		}
 	}
 
@@ -3017,7 +3016,7 @@ class LayoutStateModel extends Disposable {
 		// Apply legacy settings
 		this.stateCache.set(LayoutStateKeys.ACTIVITYBAR_HIDDEN.name, this.isActivityBarHidden());
 		this.stateCache.set(LayoutStateKeys.STATUSBAR_HIDDEN.name, !this.configurationService.getValue(LegacyWorkbenchLayoutSettings.STATUSBAR_VISIBLE));
-		this.stateCache.set(LayoutStateKeys.SIDEBAR_POSITON.name, positionFromString(this.configurationService.getValue(LegacyWorkbenchLayoutSettings.SIDEBAR_POSITION) ?? 'left'));
+		this.stateCache.set(LayoutStateKeys.SIDEBAR_POSITON.name, positionFromString(this.configurationService.getValue(LegacyWorkbenchLayoutSettings.SIDEBAR_POSITION) ?? 'right'));
 
 		// Set dynamic defaults: part sizing and side bar visibility
 		const auxiliaryBarForceMaximized = this.configurationService.getValue(WorkbenchLayoutSettings.AUXILIARYBAR_FORCE_MAXIMIZED);
@@ -3040,16 +3039,6 @@ class LayoutStateModel extends Disposable {
 			const configuration = this.configurationService.inspect(WorkbenchLayoutSettings.AUXILIARYBAR_DEFAULT_VISIBILITY);
 			if (configuration.defaultValue !== 'hidden' && !isConfigured(configuration) && this.stateCache.get(LayoutStateKeys.AUXILIARYBAR_EMPTY.name)) {
 				return true;
-			}
-
-			// New users: Show auxiliary bar even in empty workspaces,
-			// but not if the user explicitly hides it or AI features are disabled.
-			if (
-				this.isNew[StorageScope.APPLICATION] &&
-				configuration.value !== 'hidden' &&
-				!this.configurationService.getValue<boolean>(ChatAIDisabledSettingId)
-			) {
-				return false;
 			}
 
 			// Existing users: respect visibility setting

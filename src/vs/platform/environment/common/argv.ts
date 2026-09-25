@@ -3,38 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-export interface INativeCliOptions {
-	'cli-data-dir'?: string;
-	'disable-telemetry'?: boolean;
-	'telemetry-level'?: string;
-}
-
 /**
  * A list of command line arguments we support natively.
  */
 export interface NativeParsedArgs {
-
-	// subcommands
-	tunnel?: INativeCliOptions & {
-		user: {
-			login: {
-				'access-token'?: string;
-				'provider'?: string;
-			};
-		};
-	};
-	'serve-web'?: INativeCliOptions;
-	'agent'?: INativeCliOptions;
-	chat?: {
-		_: string[];
-		'add-file'?: string[];
-		mode?: string;
-		maximize?: boolean;
-		'reuse-window'?: boolean;
-		'new-window'?: boolean;
-		profile?: string;
-		help?: boolean;
-	};
 
 	// arguments
 	_: string[];
@@ -54,8 +26,6 @@ export interface NativeParsedArgs {
 	goto?: boolean;
 	'new-window'?: boolean;
 	'reuse-window'?: boolean;
-	'agents'?: boolean;
-	'session-title-base64'?: string;
 	locale?: string;
 	'user-data-dir'?: string;
 	'prof-startup'?: boolean;
@@ -77,9 +47,6 @@ export interface NativeParsedArgs {
 	'extensions-download-dir'?: string;
 	'builtin-extensions-dir'?: string;
 	'shared-data-dir'?: string;
-	'agent-plugins-dir'?: string;
-	'agents-user-data-dir'?: string;
-	'agents-extensions-dir'?: string;
 	extensionDevelopmentPath?: string[]; // undefined or array of 1 or more local paths or URIs
 	extensionTestsPath?: string; // either a local path or a URI
 	extensionDevelopmentKind?: string[];
@@ -90,22 +57,10 @@ export interface NativeParsedArgs {
 	debugRenderer?: boolean; // whether we expect a debugger (js-debug) to attach to the renderer, incl webviews+webworker
 	'inspect-ptyhost'?: string;
 	'inspect-brk-ptyhost'?: string;
-	'inspect-agenthost'?: string;
-	'inspect-brk-agenthost'?: string;
 	'inspect-sharedprocess'?: string;
 	'inspect-brk-sharedprocess'?: string;
 	'disable-extensions'?: boolean;
 	'disable-extension'?: string[]; // undefined or array of 1 or more
-	'list-extensions'?: boolean;
-	'show-versions'?: boolean;
-	'category'?: string;
-	'install-extension'?: string[]; // undefined or array of 1 or more
-	'pre-release'?: boolean;
-	'install-builtin-extension'?: string[]; // undefined or array of 1 or more
-	'uninstall-extension'?: string[]; // undefined or array of 1 or more
-	'update-extensions'?: boolean;
-	'do-not-include-pack-dependencies'?: boolean;
-	'locate-extension'?: string[]; // undefined or array of 1 or more
 	'enable-proposed-api'?: string[]; // undefined or array of 1 or more
 	'open-url'?: boolean;
 	'skip-release-notes'?: boolean;
@@ -116,9 +71,7 @@ export interface NativeParsedArgs {
 	'export-policy-data'?: string;
 	'export-default-keybindings'?: string;
 	'install-source'?: string;
-	'add-mcp'?: string[];
 	'disable-updates'?: boolean;
-	'share-secrets-with-agents-app'?: boolean;
 	'transient'?: boolean;
 	'use-inmemory-secretstorage'?: boolean;
 	'password-store'?: string;
@@ -130,18 +83,13 @@ export interface NativeParsedArgs {
 	'file-write'?: boolean;
 	'file-chmod'?: boolean;
 	'enable-smoke-test-driver'?: boolean;
-	'skip-sessions-welcome'?: boolean;
 	'remote'?: string;
 	'force'?: boolean;
-	'do-not-sync'?: boolean;
 	'preserve-env'?: boolean;
 	'force-user-env'?: boolean;
 	'force-disable-user-env'?: boolean;
-	'sync'?: 'on' | 'off';
 	'logsPath'?: string;
 	'__enable-file-policy'?: boolean;
-	editSessionId?: string;
-	continueOn?: string;
 	'locate-shell-integration-path'?: string;
 	'profile'?: string;
 	'profile-temp'?: boolean;

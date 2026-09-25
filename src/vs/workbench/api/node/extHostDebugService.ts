@@ -23,7 +23,6 @@ import { IExtHostEditorTabs } from '../common/extHostEditorTabs.js';
 import { IExtHostExtensionService } from '../common/extHostExtensionService.js';
 import { IExtHostRpcService } from '../common/extHostRpcService.js';
 import { IExtHostTerminalService } from '../common/extHostTerminalService.js';
-import { IExtHostTesting } from '../common/extHostTesting.js';
 import { DebugAdapterExecutable, DebugAdapterNamedPipeServer, DebugAdapterServer, ThemeIcon } from '../common/extHostTypes.js';
 import { IExtHostVariableResolverProvider } from '../common/extHostVariableResolverService.js';
 import { IExtHostWorkspace } from '../common/extHostWorkspace.js';
@@ -44,9 +43,8 @@ export class ExtHostDebugService extends ExtHostDebugServiceBase {
 		@IExtHostEditorTabs editorTabs: IExtHostEditorTabs,
 		@IExtHostVariableResolverProvider variableResolver: IExtHostVariableResolverProvider,
 		@IExtHostCommands commands: IExtHostCommands,
-		@IExtHostTesting testing: IExtHostTesting,
 	) {
-		super(extHostRpcService, workspaceService, extensionService, configurationService, editorTabs, variableResolver, commands, testing);
+		super(extHostRpcService, workspaceService, extensionService, configurationService, editorTabs, variableResolver, commands);
 	}
 
 	protected override createDebugAdapter(adapter: vscode.DebugAdapterDescriptor, session: ExtHostDebugSession): AbstractDebugAdapter | undefined {

@@ -35,7 +35,7 @@ function getDebPackageArch(arch: string): string {
 }
 
 function prepareDebPackage(arch: string) {
-	const binaryDir = '../VSCode-linux-' + arch;
+	const binaryDir = '../BareMTL-linux-' + arch;
 	const debArch = getDebPackageArch(arch);
 	const destination = '.build/linux/deb/' + debArch + '/' + product.applicationName + '-' + debArch;
 
@@ -111,11 +111,7 @@ function prepareDebPackage(arch: string) {
 			.pipe(replace('@@ARCHITECTURE@@', debArch))
 			.pipe(rename('DEBIAN/postinst'));
 
-		const templates = gulp.src('resources/linux/debian/templates.template', { base: '.' })
-			.pipe(replace('@@NAME@@', product.applicationName))
-			.pipe(rename('DEBIAN/templates'));
-
-		const all = es.merge(control, templates, postinst, postrm, prerm, desktops, appdata, workspaceMime, icon, bash_completion, zsh_completion, code);
+		const all = es.merge(control, postinst, postrm, prerm, desktops, appdata, workspaceMime, icon, bash_completion, zsh_completion, code);
 
 		return all.pipe(vfs.dest(destination));
 	};
@@ -146,7 +142,7 @@ function getRpmPackageArch(arch: string): string {
 }
 
 function prepareRpmPackage(arch: string) {
-	const binaryDir = '../VSCode-linux-' + arch;
+	const binaryDir = '../BareMTL-linux-' + arch;
 	const rpmArch = getRpmPackageArch(arch);
 	const stripBinary = process.env['STRIP'] ?? '/usr/bin/strip';
 
@@ -236,7 +232,7 @@ function getSnapBuildPath(arch: string): string {
 }
 
 function prepareSnapPackage(arch: string) {
-	const binaryDir = '../VSCode-linux-' + arch;
+	const binaryDir = '../BareMTL-linux-' + arch;
 	const destination = getSnapBuildPath(arch);
 
 	return function () {
